@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>JIZURA engine (zanko)</title>
+<!-- Engine-only page: JIZURA engine + zanko adapter, no editor UI.
+     Used (a) headless by tools/jizura_probe.mjs and (b) as a same-origin iframe by host_iframe.html.
+     API: window.JZ (see jizura_adapter.js), plus window.renderAt(t, mode) -> canvas for iframe hosts. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>html,body{margin:0;background:#1a1a1a;color:#ddd;font:12px/1.4 sans-serif} canvas{display:block;max-width:100vw;height:auto;background:repeating-conic-gradient(#333 0 25%,#2a2a2a 0 50%) 0 0/24px 24px}</style>
+</head>
+<body>
+<script>
+  // deterministic Math.random (mulberry32): identical grain/paper textures in every render worker
+  (() => { let a = 0x5a4e4b4f; Math.random = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; })();
+</script>
+<script src="jizura_engine.js"></script>
+<script src="jizura_adapter.js"></script>
+<script>
+  // show the adapter's output canvas (not required for rendering — it renders while detached too)
+  window.addEventListener('DOMContentLoaded', () => { if (JZ.state && !JZ.state.canvas) { const c = document.createElement('canvas'); c.width = 1920; c.height = 1080; c.id = 'jz-out'; JZ.state.canvas = c; } document.body.appendChild(JZ.state.canvas); });
+  // iframe-host convenience: same signature the compositor calls
+  window.renderAt = (t, mode = 'transparent') => JZ.renderAt(t, { mode }).canvas;
+  window.JZ_READY = true;
+</script>
+</body>
+</html>

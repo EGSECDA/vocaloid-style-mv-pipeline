@@ -1,0 +1,116 @@
+# -*- coding: utf-8 -*-
+"""PER-SONG DATA: hand-written translations for each reconciled line (same order as transcribe_lines.LINES).
+(zh: 简体中文, poetic but faithful; en: English) + hand-checked romaji. This copy holds the 残光 example;
+replace TRANS / ROMAJI for a new song (lines without an entry get empty translations / automatic romaji).
+Used by transcribe_reconcile.py -> analysis/lyrics_translation.json.
+Author: NikusonP -- vocaloid-style-mv-pipeline, MIT licence."""
+
+TRANS = [
+    # verse 1
+    ("仰望那片龟裂的天空", "Looking up at the cracked sky"),
+    ("怀抱着一道无名的影子", "I held a shadow that had no name"),
+    ("那像松散丝线一样的明天", "A tomorrow like a thread coming undone"),
+    ("我却始终没能舍弃", "I still couldn't bring myself to throw away"),
+    ("在锈蚀的门扉另一侧", "On the other side of a rusted door"),
+    ("唯有哭声还活着", "Only the crying was still alive"),
+    ("残留在指尖的冰冷", "The cold that lingers on my fingertips"),
+    ("至今仍不肯放开我", "Still won't let me go"),
+    # pre-chorus 1
+    ("呐，要坠落到哪里", "Hey, how far do I have to fall"),
+    ("才能触碰到清晨", "Before I can touch the morning?"),
+    ("在这黑暗的最深处", "Down at the bottom of this darkness"),
+    ("哪怕只是还在呼吸", "Even if all I'm doing is breathing"),
+    ("即便如此，也请不要消失", "Even so, please don't fade away"),
+    # chorus 1
+    ("救救我，救救我，从这长夜里", "Save me, save me, from this night"),
+    ("拾起我破碎的心", "Pick up the pieces of my shattered heart"),
+    ("救救我，救救我，只要一片就好", "Save me, save me, just one piece is enough"),
+    ("哪怕在终结之中", "Even in the middle of the end"),
+    ("也请留下一束光", "Leave some light behind"),
+    # verse 2
+    ("那些坠落在湿冷地板上的愿望", "The wishes that fell onto the wet floor"),
+    ("我曾一个一个地数着", "I kept counting them, one by one"),
+    ("唯有折断羽翼的疼痛", "Only the pain of my broken wings"),
+    ("我知道仍是真实的", "I knew was still real"),
+    ("若越是微笑就离得越远", "If smiling only pushes it further away"),
+    ("那我什么都不再需要", "Then I don't need anything anymore"),
+    ("即便如此，在心底深处", "And yet, deep inside my chest"),
+    ("一簇小小的火仍未熄灭", "A small flame will not go out"),
+    # pre-chorus 2
+    ("呐，如果还有谁的声音", "Hey, if someone's voice"),
+    ("仍能传达到我这里", "Can still reach me"),
+    ("那哽在喉咙深处的", "The one caught deep in my throat"),
+    ("名字，请把它呼唤", "Call out that name"),
+    ("求求你，留在这里", "Please, stay here"),
+    # chorus 2
+    ("救救我，救救我，从这长夜里", "Save me, save me, from this night"),
+    ("拾起我破碎的心", "Pick up the pieces of my shattered heart"),
+    ("救救我，救救我，只要一片就好", "Save me, save me, just one piece is enough"),
+    ("哪怕在终结之中", "Even in the middle of the end"),
+    ("也请留下一束光", "Leave some light behind"),
+    # bridge
+    ("每一次崩塌", "Every time I fell apart"),
+    ("我都更懂得温柔", "I learned a little more of kindness"),
+    ("将绝望的形状", "The shape of my despair"),
+    ("依旧紧紧拥在怀里", "I'm still holding it close"),
+    ("若是溢出的泪水", "If the tears I've spilled"),
+    ("能化作一条路", "Can become a road"),
+    ("我就会走下去", "Then I will walk it"),
+    ("哪怕害怕", "Even if I'm afraid"),
+    # final chorus
+    ("救救我，救救我，从这长夜里", "Save me, save me, from this night"),
+    ("拾起我破碎的心", "Pick up the pieces of my shattered heart"),
+    ("救救我，救救我，只要一片就好", "Save me, save me, just one piece is enough"),
+    ("哪怕在终结之中", "Even in the middle of the end"),
+    ("也请留下一束光", "Leave some light behind"),
+    # outro
+    ("现在还不算太迟", "It's not too late yet"),
+    ("在漆黑长夜的尽头", "At the far end of the pitch-black dark"),
+    ("我想要见到你", "I want to see you"),
+]
+
+# Hand-checked romaji (Hepburn, particles written as pronounced: を->o, は->wa)
+ROMAJI = {
+    "ひび割れた空を見上げて": "hibiwareta sora o miagete",
+    "名前もない影を抱いた": "namae mo nai kage o daita",
+    "ほどけた糸みたいな明日を": "hodoketa ito mitai na ashita o",
+    "まだ捨てきれずにいた": "mada sutekirezu ni ita",
+    "錆びた扉の向こう側で": "sabita tobira no mukougawa de",
+    "泣き声だけが生きていた": "nakigoe dake ga ikiteita",
+    "指先に残る冷たさが": "yubisaki ni nokoru tsumetasa ga",
+    "私をまだ離さない": "watashi o mada hanasanai",
+    "ねぇ どこまで落ちれば": "nee doko made ochireba",
+    "朝に触れられるの": "asa ni furerareru no",
+    "この闇の底で": "kono yami no soko de",
+    "息をしてるだけでも": "iki o shiteru dake demo",
+    "それでも 消えないで": "soredemo kienaide",
+    "救って 救って この夜から": "sukutte sukutte kono yoru kara",
+    "砕けた心を拾い上げて": "kudaketa kokoro o hiroiagete",
+    "救って 救って ひとつだけでいい": "sukutte sukutte hitotsu dake de ii",
+    "終わりの中にも": "owari no naka ni mo",
+    "光を残して": "hikari o nokoshite",
+    "濡れた床に落ちた願いを": "nureta yuka ni ochita negai o",
+    "ひとつずつ数えていた": "hitotsu zutsu kazoeteita",
+    "折れた羽の痛みだけが": "oreta hane no itami dake ga",
+    "まだ本当だと知ってた": "mada hontou da to shitteta",
+    "笑うほど遠ざかるなら": "warau hodo toozakaru nara",
+    "もう何もいらない": "mou nani mo iranai",
+    "それでも胸の奥で": "soredemo mune no oku de",
+    "小さな火が消えない": "chiisana hi ga kienai",
+    "ねぇ 誰かの声が": "nee dareka no koe ga",
+    "まだ届くのなら": "mada todoku no nara",
+    "この喉の奥の": "kono nodo no oku no",
+    "名前を呼んで": "namae o yonde",
+    "お願い ここにいて": "onegai koko ni ite",
+    "崩れるたびに": "kuzureru tabi ni",
+    "優しさを知った": "yasashisa o shitta",
+    "絶望の形を": "zetsubou no katachi o",
+    "抱きしめたまま": "dakishimeta mama",
+    "こぼれた涙が": "koboreta namida ga",
+    "道になるなら": "michi ni naru nara",
+    "私は行くよ": "watashi wa iku yo",
+    "怖くても": "kowakute mo",
+    "まだ遅くない": "mada osokunai",
+    "黒闇の果てで": "kuroyami no hate de",
+    "あなたに会いたい": "anata ni aitai",
+}

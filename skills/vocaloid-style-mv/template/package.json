@@ -1,0 +1,31 @@
+{
+  "name": "vocaloid-style-mv-project",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A tegaki lyric MV project made from vocaloid-style-mv-pipeline: deterministic Canvas2D/WebGL2 engine + JIZURA lyric layer, rendered headless with Playwright and ffmpeg.",
+  "author": "NikusonP",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "setup": "node -e \"const w=process.platform==='win32';const r=require('node:child_process').spawnSync(w?'powershell':'bash',w?['-NoProfile','-ExecutionPolicy','Bypass','-File','setup.ps1']:['setup.sh'],{stdio:'inherit'});process.exit(r.status===null?1:r.status)\"",
+    "check": "python tools/check_env.py",
+    "env": "node tools/kit_env.mjs",
+    "pip": "python -m pip install -r requirements.txt",
+    "fonts": "python tools/fetch_fonts.py",
+    "browser:install": "playwright install chromium",
+    "jizura:clone": "git clone --depth 1 https://github.com/852wa/JIZURA vendor/JIZURA",
+    "jizura:build": "node tools/build_jizura_bundle.mjs",
+    "demo:song": "python demo/make_demo_song.py",
+    "analyze": "python tools/analyze_audio.py",
+    "stills": "node tools/stills.mjs",
+    "render": "node tools/render_final.mjs --name mv",
+    "render:preview": "node tools/render_final.mjs --name preview --preview",
+    "render:vertical": "node tools/render_final.mjs --name mv_vertical --url engine/vertical.html --selector canvas#vout --width 1080 --height 1920"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  }
+}

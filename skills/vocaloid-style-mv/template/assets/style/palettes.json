@@ -1,0 +1,322 @@
+{
+ "global": {
+  "flash_white": "#FFFFFF",
+  "sumi": "#111014",
+  "paper": "#F4EFE6"
+ },
+ "palettes": [
+  {
+   "id": "P1_oumagatoki",
+   "name": "逢魔が時 Oumagatoki (magic hour)",
+   "use": "main chorus / title / emotional peaks; the canonical 'afterglow' look",
+   "roles": {
+    "ink": "#140B1E",
+    "shadow": "#3A1745",
+    "dusk": "#7A2350",
+    "vermilion": "#C8373A",
+    "sunset": "#F0663A",
+    "glow": "#FFA552",
+    "highlight": "#FFE3B0"
+   },
+   "gradmap": [
+    [
+     0.0,
+     "#140B1E"
+    ],
+    [
+     0.22,
+     "#3A1745"
+    ],
+    [
+     0.42,
+     "#7A2350"
+    ],
+    [
+     0.58,
+     "#C8373A"
+    ],
+    [
+     0.72,
+     "#F0663A"
+    ],
+    [
+     0.86,
+     "#FFA552"
+    ],
+    [
+     1.0,
+     "#FFE3B0"
+    ]
+   ],
+   "duotone": [
+    "#140B1E",
+    "#FFA552"
+   ],
+   "accent": "#C8373A",
+   "afterimage": "#39C6E0",
+   "luminance": {
+    "#140B1E": 0.0048,
+    "#3A1745": 0.0194,
+    "#7A2350": 0.0592,
+    "#C8373A": 0.1532,
+    "#F0663A": 0.2833,
+    "#FFA552": 0.4878,
+    "#FFE3B0": 0.7933
+   },
+   "duotone_contrast": 9.81,
+   "lut": "assets/style/luts/P1_oumagatoki.png",
+   "lut_duotone": "assets/style/luts/P1_oumagatoki_duo.png",
+   "gradmap_monotonic": true
+  },
+  {
+   "id": "P2_zansho",
+   "name": "残照 Zanshō (lingering glow vs. night)",
+   "use": "verses, memory-vs-present split tone, blue sky above / orange horizon",
+   "roles": {
+    "night": "#0B1524",
+    "steel": "#1E3552",
+    "haze": "#3F6284",
+    "mist": "#8FB2C9",
+    "cream": "#E9D9B8",
+    "amber": "#F4A640",
+    "ember": "#D8542A"
+   },
+   "gradmap": [
+    [
+     0.0,
+     "#0B1524"
+    ],
+    [
+     0.25,
+     "#1E3552"
+    ],
+    [
+     0.45,
+     "#3F6284"
+    ],
+    [
+     0.6,
+     "#D8542A"
+    ],
+    [
+     0.8,
+     "#F4A640"
+    ],
+    [
+     1.0,
+     "#E9D9B8"
+    ]
+   ],
+   "duotone": [
+    "#0B1524",
+    "#F4A640"
+   ],
+   "accent": "#D8542A",
+   "afterimage": "#2F7BD9",
+   "luminance": {
+    "#0B1524": 0.0073,
+    "#1E3552": 0.0343,
+    "#3F6284": 0.1146,
+    "#8FB2C9": 0.419,
+    "#E9D9B8": 0.7041,
+    "#F4A640": 0.4688,
+    "#D8542A": 0.2111
+   },
+   "duotone_contrast": 9.05,
+   "lut": "assets/style/luts/P2_zansho.png",
+   "lut_duotone": "assets/style/luts/P2_zansho_duo.png",
+   "gradmap_monotonic": true
+  },
+  {
+   "id": "P3_fumikiri",
+   "name": "踏切 Fumikiri (railway crossing alarm)",
+   "use": "pre-chorus tension, bridge alarm, beat-strobe hits; graphic black/red/white + hazard yellow",
+   "roles": {
+    "black": "#0A0A0C",
+    "asphalt": "#2A2F36",
+    "signal": "#E5102E",
+    "lamp": "#FF4B3A",
+    "caution": "#FFC21A",
+    "white": "#F3F1EA"
+   },
+   "gradmap": [
+    [
+     0.0,
+     "#0A0A0C"
+    ],
+    [
+     0.38,
+     "#0A0A0C"
+    ],
+    [
+     0.4,
+     "#E5102E"
+    ],
+    [
+     0.7,
+     "#E5102E"
+    ],
+    [
+     0.72,
+     "#F3F1EA"
+    ],
+    [
+     1.0,
+     "#F3F1EA"
+    ]
+   ],
+   "duotone": [
+    "#0A0A0C",
+    "#E5102E"
+   ],
+   "accent": "#FFC21A",
+   "afterimage": "#00E0C8",
+   "luminance": {
+    "#0A0A0C": 0.0031,
+    "#2A2F36": 0.0279,
+    "#E5102E": 0.1723,
+    "#FF4B3A": 0.266,
+    "#FFC21A": 0.5992,
+    "#F3F1EA": 0.8791
+   },
+   "duotone_contrast": 4.19,
+   "lut": "assets/style/luts/P3_fumikiri.png",
+   "lut_duotone": "assets/style/luts/P3_fumikiri_duo.png",
+   "gradmap_monotonic": true
+  },
+  {
+   "id": "P4_hotarubi",
+   "name": "蛍火 Hotarubi (blue hour + fireflies)",
+   "use": "quiet verse, breakdown, bridge-before-drop, outro embers; cold field + chartreuse glow",
+   "roles": {
+    "abyss": "#050F16",
+    "bluehour": "#0C2233",
+    "teal": "#17405A",
+    "reed": "#2F6B6A",
+    "firefly": "#9BD86A",
+    "glow": "#DDFF7A",
+    "core": "#F6FFE0"
+   },
+   "gradmap": [
+    [
+     0.0,
+     "#050F16"
+    ],
+    [
+     0.25,
+     "#0C2233"
+    ],
+    [
+     0.45,
+     "#17405A"
+    ],
+    [
+     0.62,
+     "#2F6B6A"
+    ],
+    [
+     0.82,
+     "#9BD86A"
+    ],
+    [
+     0.93,
+     "#DDFF7A"
+    ],
+    [
+     1.0,
+     "#F6FFE0"
+    ]
+   ],
+   "duotone": [
+    "#050F16",
+    "#DDFF7A"
+   ],
+   "accent": "#DDFF7A",
+   "afterimage": "#C04BD8",
+   "luminance": {
+    "#050F16": 0.0043,
+    "#0C2233": 0.0146,
+    "#17405A": 0.0459,
+    "#2F6B6A": 0.1216,
+    "#9BD86A": 0.5712,
+    "#DDFF7A": 0.883,
+    "#F6FFE0": 0.9649
+   },
+   "duotone_contrast": 17.18,
+   "lut": "assets/style/luts/P4_hotarubi.png",
+   "lut_duotone": "assets/style/luts/P4_hotarubi_duo.png",
+   "gradmap_monotonic": true
+  },
+  {
+   "id": "P5_taishoku",
+   "name": "褪色 Taishoku (faded photograph / 走馬灯 memory)",
+   "use": "flashbacks, 走馬灯 inserts, paper/diary scenes; low-saturation sepia with cyan/rose split tone",
+   "roles": {
+    "sepia": "#241C1A",
+    "umber": "#4A3B35",
+    "taupe": "#7D6A5E",
+    "dustrose": "#B79C8B",
+    "parchment": "#D8C7AE",
+    "paper": "#EFE6D6",
+    "bleach_cyan": "#9CC2C0",
+    "faded_rose": "#C98D86"
+   },
+   "gradmap": [
+    [
+     0.0,
+     "#241C1A"
+    ],
+    [
+     0.2,
+     "#4A3B35"
+    ],
+    [
+     0.45,
+     "#7D6A5E"
+    ],
+    [
+     0.68,
+     "#B79C8B"
+    ],
+    [
+     0.85,
+     "#D8C7AE"
+    ],
+    [
+     1.0,
+     "#EFE6D6"
+    ]
+   ],
+   "duotone": [
+    "#241C1A",
+    "#EFE6D6"
+   ],
+   "accent": "#C98D86",
+   "afterimage": "#6FA9A6",
+   "split_tone": {
+    "shadows": [
+     "#9CC2C0",
+     0.15
+    ],
+    "highlights": [
+     "#C98D86",
+     0.1
+    ]
+   },
+   "luminance": {
+    "#241C1A": 0.0128,
+    "#4A3B35": 0.0484,
+    "#7D6A5E": 0.1548,
+    "#B79C8B": 0.3571,
+    "#D8C7AE": 0.585,
+    "#EFE6D6": 0.798,
+    "#9CC2C0": 0.4946,
+    "#C98D86": 0.3319
+   },
+   "duotone_contrast": 13.5,
+   "lut": "assets/style/luts/P5_taishoku.png",
+   "lut_duotone": "assets/style/luts/P5_taishoku_duo.png",
+   "gradmap_monotonic": true
+  }
+ ]
+}

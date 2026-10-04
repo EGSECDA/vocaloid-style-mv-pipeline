@@ -1,0 +1,12 @@
+[
+ {"first_bar": 1, "last_bar": 1, "label": "intro", "group": "intro", "name": "Intro",
+  "character": "near silence: a pad swells, one bell", "notable": "the title card holds in the quiet"},
+ {"first_bar": 2, "last_bar": 5, "label": "verse", "group": "verse", "name": "Verse",
+  "character": "sparse drums, pad Am F C G, the lead enters", "notable": "lines 1-2 (夜の底で / 小さな光が)"},
+ {"first_bar": 6, "last_bar": 7, "label": "pre-chorus", "group": "pre", "name": "Pre-chorus",
+  "character": "four-on-the-floor, riser, snare roll", "notable": "half-beat STOP at 12.83 s before the chorus"},
+ {"first_bar": 8, "last_bar": 11, "label": "chorus", "group": "chorus", "name": "Chorus",
+  "character": "full band, crash, side-chained pad, high lead", "notable": "chorus downbeat 13.15 s = the biggest hit"},
+ {"first_bar": 12, "last_bar": 12, "label": "post-chorus", "group": "post", "name": "Post-chorus",
+  "character": "last bar at full energy, tom fill", "notable": "DEAD STOP at 22.5 s: hard cut to the end card"}
+]

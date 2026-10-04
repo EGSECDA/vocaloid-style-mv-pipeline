@@ -1,0 +1,26 @@
+# tegaki-mv project -- Python packages (Python 3.10+).
+#   python -m pip install -r requirements.txt          (setup.ps1 / setup.sh run this)
+# Author: NikusonP -- vocaloid-style-mv-pipeline, MIT licence.
+
+# ---------------------------------------------------------------- core (audio analysis, image tools, demo song)
+librosa>=0.10          # tools/analyze_audio.py: beats, bars, sections, envelopes
+numpy>=1.24
+scipy>=1.10            # filters / signal helpers (analysis, alpha matte, transcription)
+soundfile>=0.12        # WAV I/O (analysis, demo/make_demo_song.py)
+pillow>=10.0           # contact sheets, review sheets, palette LUTs, chroma key (tools/alpha_matte.py)
+matplotlib>=3.7        # analysis/overview.png + ssm.png (skip with analyze_audio.py --no-plot)
+opencv-python-headless>=4.8   # image utilities for asset work (headless build: no GUI deps)
+
+# ---------------------------------------------------------------- optional: lyric transcription / timing
+# Only needed when the song has no official lyric timings (references/03-audio-and-lyrics.md). Install with
+#   setup.ps1 -Lyrics   |   ./setup.sh --lyrics   |   python -m pip install faster-whisper onnxruntime huggingface_hub pykakasi
+# Lines starting with "# [lyrics]" are read by the setup scripts -- keep the format: "# [lyrics] <requirement>  # note".
+# [lyrics] faster-whisper>=1.1     # ASR (tools/transcribe_whisper.py, transcribe_score.py, transcribe_onset_probe.py) + Silero VAD fallback in analyze_audio.py
+# [lyrics] onnxruntime>=1.17       # vocal stem separation, UVR MDX-Net on CPU (tools/transcribe_separate.py)
+# [lyrics] huggingface_hub>=0.20   # downloads the separation model (tools/transcribe_separate.py)
+# [lyrics] pykakasi>=2.2           # kana readings / romaji for alignment (tools/transcribe_kana.py, transcribe_reconcile.py)
+#
+# Forced alignment (tools/transcribe_align_mms.py) also needs CPU torch + torchaudio 2.8. Keep them out of the main
+# site-packages (large); the tool finds this folder automatically (or set TORCH_DEPS_DIR):
+#   python -m pip install --target vendor/pydeps_torch torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cpu
+# GPU Whisper on Windows (NVIDIA): python -m pip install nvidia-cublas-cu12 nvidia-cudnn-cu12   (else it falls back to CPU int8)

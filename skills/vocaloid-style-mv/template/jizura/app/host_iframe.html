@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>JIZURA compositor prototype (iframe)</title>
+<!-- Prototype of OUR compositor embedding JIZURA through a same-origin <iframe src="engine.html">.
+     Use this when the compositor must not share globals with JIZURA (it defines window.J and a few document-level
+     caches). The iframe's canvas is drawn straight into our canvas (same origin -> not tainted, zero copies through JS).
+     API: window.HOST.init(project, {audioUrl}) ; window.HOST.compose(t) ; canvas #comp -->
+<style>html,body{margin:0;background:#111} canvas{display:block;max-width:100vw;height:auto} iframe{position:absolute;left:-10000px;width:960px;height:540px;border:0}</style>
+</head>
+<body>
+<canvas id="comp" width="1920" height="1080"></canvas>
+<iframe id="jz" src="engine.html"></iframe>
+<script>
+(() => {
+  const comp = document.getElementById('comp'), cx = comp.getContext('2d'), frame = document.getElementById('jz');
+  const ready = new Promise(res => { const poll = () => (frame.contentWindow && frame.contentWindow.JZ_READY ? res(frame.contentWindow) : setTimeout(poll, 20)); poll(); });
+  window.HOST = {
+    async init(project, { audioUrl, beats } = {}) {
+      const w = await ready;
+      if (beats) w.JZ.setAudio(beats); else if (audioUrl) await w.JZ.analyzeAudioUrl(audioUrl);
+      return w.JZ.setProject(project);
+    },
+    compose(t) {
+      const w = frame.contentWindow, W = comp.width, H = comp.height, t0 = performance.now();
+      // our layer 1: a flat dusk plate
+      const g = cx.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#241339'); g.addColorStop(1, '#c2573f');
+      cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+      // JIZURA: everything in one transparent pass (bg graphic is not drawn in plain transparent mode)
+      const j0 = performance.now();
+      const jzCanvas = w.renderAt(t, 'transparent');
+      const jz = performance.now() - j0;
+      cx.drawImage(jzCanvas, 0, 0, W, H);
+      return { jz, total: performance.now() - t0 };
+    },
+    canvas: comp,
+  };
+  window.HOST_READY = true;
+})();
+</script>
+</body>
+</html>

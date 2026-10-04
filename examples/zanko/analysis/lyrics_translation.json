@@ -1,0 +1,418 @@
+[
+ {
+  "index": 0,
+  "text": "ひび割れた空を見上げて",
+  "reading": "ひびわれたそらをみあげて",
+  "romaji": "hibiwareta sora o miagete",
+  "zh": "仰望那片龟裂的天空",
+  "en": "Looking up at the cracked sky"
+ },
+ {
+  "index": 1,
+  "text": "名前もない影を抱いた",
+  "reading": "なまえもないかげをだいた",
+  "romaji": "namae mo nai kage o daita",
+  "zh": "怀抱着一道无名的影子",
+  "en": "I held a shadow that had no name"
+ },
+ {
+  "index": 2,
+  "text": "ほどけた糸みたいな明日を",
+  "reading": "ほどけたいとみたいなあしたを",
+  "romaji": "hodoketa ito mitai na ashita o",
+  "zh": "那像松散丝线一样的明天",
+  "en": "A tomorrow like a thread coming undone"
+ },
+ {
+  "index": 3,
+  "text": "まだ捨てきれずにいた",
+  "reading": "まだすてきれずにいた",
+  "romaji": "mada sutekirezu ni ita",
+  "zh": "我却始终没能舍弃",
+  "en": "I still couldn't bring myself to throw away"
+ },
+ {
+  "index": 4,
+  "text": "錆びた扉の向こう側で",
+  "reading": "さびたとびらのむこうがわで",
+  "romaji": "sabita tobira no mukougawa de",
+  "zh": "在锈蚀的门扉另一侧",
+  "en": "On the other side of a rusted door"
+ },
+ {
+  "index": 5,
+  "text": "泣き声だけが生きていた",
+  "reading": "なきごえだけがいきていた",
+  "romaji": "nakigoe dake ga ikiteita",
+  "zh": "唯有哭声还活着",
+  "en": "Only the crying was still alive"
+ },
+ {
+  "index": 6,
+  "text": "指先に残る冷たさが",
+  "reading": "ゆびさきにのこるつめたさが",
+  "romaji": "yubisaki ni nokoru tsumetasa ga",
+  "zh": "残留在指尖的冰冷",
+  "en": "The cold that lingers on my fingertips"
+ },
+ {
+  "index": 7,
+  "text": "私をまだ離さない",
+  "reading": "わたしをまだはなさない",
+  "romaji": "watashi o mada hanasanai",
+  "zh": "至今仍不肯放开我",
+  "en": "Still won't let me go"
+ },
+ {
+  "index": 8,
+  "text": "ねぇ どこまで落ちれば",
+  "reading": "ねぇ どこまでおちれば",
+  "romaji": "nee doko made ochireba",
+  "zh": "呐，要坠落到哪里",
+  "en": "Hey, how far do I have to fall"
+ },
+ {
+  "index": 9,
+  "text": "朝に触れられるの",
+  "reading": "あさにふれられるの",
+  "romaji": "asa ni furerareru no",
+  "zh": "才能触碰到清晨",
+  "en": "Before I can touch the morning?"
+ },
+ {
+  "index": 10,
+  "text": "この闇の底で",
+  "reading": "このやみのそこで",
+  "romaji": "kono yami no soko de",
+  "zh": "在这黑暗的最深处",
+  "en": "Down at the bottom of this darkness"
+ },
+ {
+  "index": 11,
+  "text": "息をしてるだけでも",
+  "reading": "いきをしてるだけでも",
+  "romaji": "iki o shiteru dake demo",
+  "zh": "哪怕只是还在呼吸",
+  "en": "Even if all I'm doing is breathing"
+ },
+ {
+  "index": 12,
+  "text": "それでも 消えないで",
+  "reading": "それでも きえないで",
+  "romaji": "soredemo kienaide",
+  "zh": "即便如此，也请不要消失",
+  "en": "Even so, please don't fade away"
+ },
+ {
+  "index": 13,
+  "text": "救って 救って この夜から",
+  "reading": "すくって すくって このよるから",
+  "romaji": "sukutte sukutte kono yoru kara",
+  "zh": "救救我，救救我，从这长夜里",
+  "en": "Save me, save me, from this night"
+ },
+ {
+  "index": 14,
+  "text": "砕けた心を拾い上げて",
+  "reading": "くだけたこころをひろいあげて",
+  "romaji": "kudaketa kokoro o hiroiagete",
+  "zh": "拾起我破碎的心",
+  "en": "Pick up the pieces of my shattered heart"
+ },
+ {
+  "index": 15,
+  "text": "救って 救って ひとつだけでいい",
+  "reading": "すくって すくって ひとつだけでいい",
+  "romaji": "sukutte sukutte hitotsu dake de ii",
+  "zh": "救救我，救救我，只要一片就好",
+  "en": "Save me, save me, just one piece is enough"
+ },
+ {
+  "index": 16,
+  "text": "終わりの中にも",
+  "reading": "おわりのなかにも",
+  "romaji": "owari no naka ni mo",
+  "zh": "哪怕在终结之中",
+  "en": "Even in the middle of the end"
+ },
+ {
+  "index": 17,
+  "text": "光を残して",
+  "reading": "ひかりをのこして",
+  "romaji": "hikari o nokoshite",
+  "zh": "也请留下一束光",
+  "en": "Leave some light behind"
+ },
+ {
+  "index": 18,
+  "text": "濡れた床に落ちた願いを",
+  "reading": "ぬれたゆかにおちたねがいを",
+  "romaji": "nureta yuka ni ochita negai o",
+  "zh": "那些坠落在湿冷地板上的愿望",
+  "en": "The wishes that fell onto the wet floor"
+ },
+ {
+  "index": 19,
+  "text": "ひとつずつ数えていた",
+  "reading": "ひとつずつかぞえていた",
+  "romaji": "hitotsu zutsu kazoeteita",
+  "zh": "我曾一个一个地数着",
+  "en": "I kept counting them, one by one"
+ },
+ {
+  "index": 20,
+  "text": "折れた羽の痛みだけが",
+  "reading": "おれたはねのいたみだけが",
+  "romaji": "oreta hane no itami dake ga",
+  "zh": "唯有折断羽翼的疼痛",
+  "en": "Only the pain of my broken wings"
+ },
+ {
+  "index": 21,
+  "text": "まだ本当だと知ってた",
+  "reading": "まだほんとうだとしってた",
+  "romaji": "mada hontou da to shitteta",
+  "zh": "我知道仍是真实的",
+  "en": "I knew was still real"
+ },
+ {
+  "index": 22,
+  "text": "笑うほど遠ざかるなら",
+  "reading": "わらうほどとおざかるなら",
+  "romaji": "warau hodo toozakaru nara",
+  "zh": "若越是微笑就离得越远",
+  "en": "If smiling only pushes it further away"
+ },
+ {
+  "index": 23,
+  "text": "もう何もいらない",
+  "reading": "もうなにもいらない",
+  "romaji": "mou nani mo iranai",
+  "zh": "那我什么都不再需要",
+  "en": "Then I don't need anything anymore"
+ },
+ {
+  "index": 24,
+  "text": "それでも胸の奥で",
+  "reading": "それでもむねのおくで",
+  "romaji": "soredemo mune no oku de",
+  "zh": "即便如此，在心底深处",
+  "en": "And yet, deep inside my chest"
+ },
+ {
+  "index": 25,
+  "text": "小さな火が消えない",
+  "reading": "ちいさなひがきえない",
+  "romaji": "chiisana hi ga kienai",
+  "zh": "一簇小小的火仍未熄灭",
+  "en": "A small flame will not go out"
+ },
+ {
+  "index": 26,
+  "text": "ねぇ 誰かの声が",
+  "reading": "ねぇ だれかのこえが",
+  "romaji": "nee dareka no koe ga",
+  "zh": "呐，如果还有谁的声音",
+  "en": "Hey, if someone's voice"
+ },
+ {
+  "index": 27,
+  "text": "まだ届くのなら",
+  "reading": "まだとどくのなら",
+  "romaji": "mada todoku no nara",
+  "zh": "仍能传达到我这里",
+  "en": "Can still reach me"
+ },
+ {
+  "index": 28,
+  "text": "この喉の奥の",
+  "reading": "こののどのおくの",
+  "romaji": "kono nodo no oku no",
+  "zh": "那哽在喉咙深处的",
+  "en": "The one caught deep in my throat"
+ },
+ {
+  "index": 29,
+  "text": "名前を呼んで",
+  "reading": "なまえをよんで",
+  "romaji": "namae o yonde",
+  "zh": "名字，请把它呼唤",
+  "en": "Call out that name"
+ },
+ {
+  "index": 30,
+  "text": "お願い ここにいて",
+  "reading": "おねがい ここにいて",
+  "romaji": "onegai koko ni ite",
+  "zh": "求求你，留在这里",
+  "en": "Please, stay here"
+ },
+ {
+  "index": 31,
+  "text": "救って 救って この夜から",
+  "reading": "すくって すくって このよるから",
+  "romaji": "sukutte sukutte kono yoru kara",
+  "zh": "救救我，救救我，从这长夜里",
+  "en": "Save me, save me, from this night"
+ },
+ {
+  "index": 32,
+  "text": "砕けた心を拾い上げて",
+  "reading": "くだけたこころをひろいあげて",
+  "romaji": "kudaketa kokoro o hiroiagete",
+  "zh": "拾起我破碎的心",
+  "en": "Pick up the pieces of my shattered heart"
+ },
+ {
+  "index": 33,
+  "text": "救って 救って ひとつだけでいい",
+  "reading": "すくって すくって ひとつだけでいい",
+  "romaji": "sukutte sukutte hitotsu dake de ii",
+  "zh": "救救我，救救我，只要一片就好",
+  "en": "Save me, save me, just one piece is enough"
+ },
+ {
+  "index": 34,
+  "text": "終わりの中にも",
+  "reading": "おわりのなかにも",
+  "romaji": "owari no naka ni mo",
+  "zh": "哪怕在终结之中",
+  "en": "Even in the middle of the end"
+ },
+ {
+  "index": 35,
+  "text": "光を残して",
+  "reading": "ひかりをのこして",
+  "romaji": "hikari o nokoshite",
+  "zh": "也请留下一束光",
+  "en": "Leave some light behind"
+ },
+ {
+  "index": 36,
+  "text": "崩れるたびに",
+  "reading": "くずれるたびに",
+  "romaji": "kuzureru tabi ni",
+  "zh": "每一次崩塌",
+  "en": "Every time I fell apart"
+ },
+ {
+  "index": 37,
+  "text": "優しさを知った",
+  "reading": "やさしさをしった",
+  "romaji": "yasashisa o shitta",
+  "zh": "我都更懂得温柔",
+  "en": "I learned a little more of kindness"
+ },
+ {
+  "index": 38,
+  "text": "絶望の形を",
+  "reading": "ぜつぼうのかたちを",
+  "romaji": "zetsubou no katachi o",
+  "zh": "将绝望的形状",
+  "en": "The shape of my despair"
+ },
+ {
+  "index": 39,
+  "text": "抱きしめたまま",
+  "reading": "だきしめたまま",
+  "romaji": "dakishimeta mama",
+  "zh": "依旧紧紧拥在怀里",
+  "en": "I'm still holding it close"
+ },
+ {
+  "index": 40,
+  "text": "こぼれた涙が",
+  "reading": "こぼれたなみだが",
+  "romaji": "koboreta namida ga",
+  "zh": "若是溢出的泪水",
+  "en": "If the tears I've spilled"
+ },
+ {
+  "index": 41,
+  "text": "道になるなら",
+  "reading": "みちになるなら",
+  "romaji": "michi ni naru nara",
+  "zh": "能化作一条路",
+  "en": "Can become a road"
+ },
+ {
+  "index": 42,
+  "text": "私は行くよ",
+  "reading": "わたしはいくよ",
+  "romaji": "watashi wa iku yo",
+  "zh": "我就会走下去",
+  "en": "Then I will walk it"
+ },
+ {
+  "index": 43,
+  "text": "怖くても",
+  "reading": "こわくても",
+  "romaji": "kowakute mo",
+  "zh": "哪怕害怕",
+  "en": "Even if I'm afraid"
+ },
+ {
+  "index": 44,
+  "text": "救って 救って この夜から",
+  "reading": "すくって すくって このよるから",
+  "romaji": "sukutte sukutte kono yoru kara",
+  "zh": "救救我，救救我，从这长夜里",
+  "en": "Save me, save me, from this night"
+ },
+ {
+  "index": 45,
+  "text": "砕けた心を拾い上げて",
+  "reading": "くだけたこころをひろいあげて",
+  "romaji": "kudaketa kokoro o hiroiagete",
+  "zh": "拾起我破碎的心",
+  "en": "Pick up the pieces of my shattered heart"
+ },
+ {
+  "index": 46,
+  "text": "救って 救って ひとつだけでいい",
+  "reading": "すくって すくって ひとつだけでいい",
+  "romaji": "sukutte sukutte hitotsu dake de ii",
+  "zh": "救救我，救救我，只要一片就好",
+  "en": "Save me, save me, just one piece is enough"
+ },
+ {
+  "index": 47,
+  "text": "終わりの中にも",
+  "reading": "おわりのなかにも",
+  "romaji": "owari no naka ni mo",
+  "zh": "哪怕在终结之中",
+  "en": "Even in the middle of the end"
+ },
+ {
+  "index": 48,
+  "text": "光を残して",
+  "reading": "ひかりをのこして",
+  "romaji": "hikari o nokoshite",
+  "zh": "也请留下一束光",
+  "en": "Leave some light behind"
+ },
+ {
+  "index": 49,
+  "text": "まだ遅くない",
+  "reading": "まだおそくない",
+  "romaji": "mada osokunai",
+  "zh": "现在还不算太迟",
+  "en": "It's not too late yet"
+ },
+ {
+  "index": 50,
+  "text": "黒闇の果てで",
+  "reading": "くろやみのはてで",
+  "romaji": "kuroyami no hate de",
+  "zh": "在漆黑长夜的尽头",
+  "en": "At the far end of the pitch-black dark"
+ },
+ {
+  "index": 51,
+  "text": "あなたに会いたい",
+  "reading": "あなたにあいたい",
+  "romaji": "anata ni aitai",
+  "zh": "我想要见到你",
+  "en": "I want to see you"
+ }
+]

@@ -1,0 +1,261 @@
+[
+ {
+  "family": "Noto Sans JP",
+  "dir": "notosansjp",
+  "src": "NotoSansJP[wght].ttf",
+  "file": "NotoSansJP_wght_.ttf",
+  "size": 9589900
+ },
+ {
+  "family": "Noto Serif JP",
+  "dir": "notoserifjp",
+  "src": "NotoSerifJP[wght].ttf",
+  "file": "NotoSerifJP_wght_.ttf",
+  "size": 13574352
+ },
+ {
+  "family": "Zen Old Mincho",
+  "dir": "zenoldmincho",
+  "src": "ZenOldMincho-Black.ttf",
+  "file": "ZenOldMincho-Black.ttf",
+  "size": 5416348
+ },
+ {
+  "family": "Zen Old Mincho",
+  "dir": "zenoldmincho",
+  "src": "ZenOldMincho-Bold.ttf",
+  "file": "ZenOldMincho-Bold.ttf",
+  "size": 5436460
+ },
+ {
+  "family": "Zen Old Mincho",
+  "dir": "zenoldmincho",
+  "src": "ZenOldMincho-Medium.ttf",
+  "file": "ZenOldMincho-Medium.ttf",
+  "size": 5502836
+ },
+ {
+  "family": "Zen Old Mincho",
+  "dir": "zenoldmincho",
+  "src": "ZenOldMincho-Regular.ttf",
+  "file": "ZenOldMincho-Regular.ttf",
+  "size": 5442512
+ },
+ {
+  "family": "Zen Old Mincho",
+  "dir": "zenoldmincho",
+  "src": "ZenOldMincho-SemiBold.ttf",
+  "file": "ZenOldMincho-SemiBold.ttf",
+  "size": 5521388
+ },
+ {
+  "family": "Shippori Mincho B1",
+  "dir": "shipporiminchob1",
+  "src": "ShipporiMinchoB1-Bold.ttf",
+  "file": "ShipporiMinchoB1-Bold.ttf",
+  "size": 15088960
+ },
+ {
+  "family": "Shippori Mincho B1",
+  "dir": "shipporiminchob1",
+  "src": "ShipporiMinchoB1-ExtraBold.ttf",
+  "file": "ShipporiMinchoB1-ExtraBold.ttf",
+  "size": 15088060
+ },
+ {
+  "family": "Shippori Mincho B1",
+  "dir": "shipporiminchob1",
+  "src": "ShipporiMinchoB1-Medium.ttf",
+  "file": "ShipporiMinchoB1-Medium.ttf",
+  "size": 15185140
+ },
+ {
+  "family": "Shippori Mincho B1",
+  "dir": "shipporiminchob1",
+  "src": "ShipporiMinchoB1-Regular.ttf",
+  "file": "ShipporiMinchoB1-Regular.ttf",
+  "size": 15230032
+ },
+ {
+  "family": "Shippori Mincho B1",
+  "dir": "shipporiminchob1",
+  "src": "ShipporiMinchoB1-SemiBold.ttf",
+  "file": "ShipporiMinchoB1-SemiBold.ttf",
+  "size": 15160536
+ },
+ {
+  "family": "Dela Gothic One",
+  "dir": "delagothicone",
+  "src": "DelaGothicOne-Regular.ttf",
+  "file": "DelaGothicOne-Regular.ttf",
+  "size": 2508848
+ },
+ {
+  "family": "Klee One",
+  "dir": "kleeone",
+  "src": "KleeOne-Regular.ttf",
+  "file": "KleeOne-Regular.ttf",
+  "size": 8724204
+ },
+ {
+  "family": "Klee One",
+  "dir": "kleeone",
+  "src": "KleeOne-SemiBold.ttf",
+  "file": "KleeOne-SemiBold.ttf",
+  "size": 8905128
+ },
+ {
+  "family": "Yuji Syuku",
+  "dir": "yujisyuku",
+  "src": "YujiSyuku-Regular.ttf",
+  "file": "YujiSyuku-Regular.ttf",
+  "size": 8430348
+ },
+ {
+  "family": "Zen Kaku Gothic New",
+  "dir": "zenkakugothicnew",
+  "src": "ZenKakuGothicNew-Black.ttf",
+  "file": "ZenKakuGothicNew-Black.ttf",
+  "size": 2300600
+ },
+ {
+  "family": "Zen Kaku Gothic New",
+  "dir": "zenkakugothicnew",
+  "src": "ZenKakuGothicNew-Bold.ttf",
+  "file": "ZenKakuGothicNew-Bold.ttf",
+  "size": 2314424
+ },
+ {
+  "family": "Zen Kaku Gothic New",
+  "dir": "zenkakugothicnew",
+  "src": "ZenKakuGothicNew-Light.ttf",
+  "file": "ZenKakuGothicNew-Light.ttf",
+  "size": 2181020
+ },
+ {
+  "family": "Zen Kaku Gothic New",
+  "dir": "zenkakugothicnew",
+  "src": "ZenKakuGothicNew-Medium.ttf",
+  "file": "ZenKakuGothicNew-Medium.ttf",
+  "size": 2328176
+ },
+ {
+  "family": "Zen Kaku Gothic New",
+  "dir": "zenkakugothicnew",
+  "src": "ZenKakuGothicNew-Regular.ttf",
+  "file": "ZenKakuGothicNew-Regular.ttf",
+  "size": 2360248
+ },
+ {
+  "family": "DotGothic16",
+  "dir": "dotgothic16",
+  "src": "DotGothic16-Regular.ttf",
+  "file": "DotGothic16-Regular.ttf",
+  "size": 2069236
+ },
+ {
+  "family": "Kaisei Tokumin",
+  "dir": "kaiseitokumin",
+  "src": "KaiseiTokumin-Bold.ttf",
+  "file": "KaiseiTokumin-Bold.ttf",
+  "size": 4366200
+ },
+ {
+  "family": "Kaisei Tokumin",
+  "dir": "kaiseitokumin",
+  "src": "KaiseiTokumin-ExtraBold.ttf",
+  "file": "KaiseiTokumin-ExtraBold.ttf",
+  "size": 4564000
+ },
+ {
+  "family": "Kaisei Tokumin",
+  "dir": "kaiseitokumin",
+  "src": "KaiseiTokumin-Medium.ttf",
+  "file": "KaiseiTokumin-Medium.ttf",
+  "size": 4367444
+ },
+ {
+  "family": "Kaisei Tokumin",
+  "dir": "kaiseitokumin",
+  "src": "KaiseiTokumin-Regular.ttf",
+  "file": "KaiseiTokumin-Regular.ttf",
+  "size": 4581732
+ },
+ {
+  "family": "M PLUS Rounded 1c",
+  "dir": "mplusrounded1c",
+  "src": "MPLUSRounded1c-Black.ttf",
+  "file": "MPLUSRounded1c-Black.ttf",
+  "size": 3635504
+ },
+ {
+  "family": "M PLUS Rounded 1c",
+  "dir": "mplusrounded1c",
+  "src": "MPLUSRounded1c-Bold.ttf",
+  "file": "MPLUSRounded1c-Bold.ttf",
+  "size": 3542592
+ },
+ {
+  "family": "M PLUS Rounded 1c",
+  "dir": "mplusrounded1c",
+  "src": "MPLUSRounded1c-ExtraBold.ttf",
+  "file": "MPLUSRounded1c-ExtraBold.ttf",
+  "size": 3628512
+ },
+ {
+  "family": "M PLUS Rounded 1c",
+  "dir": "mplusrounded1c",
+  "src": "MPLUSRounded1c-Light.ttf",
+  "file": "MPLUSRounded1c-Light.ttf",
+  "size": 3294556
+ },
+ {
+  "family": "M PLUS Rounded 1c",
+  "dir": "mplusrounded1c",
+  "src": "MPLUSRounded1c-Medium.ttf",
+  "file": "MPLUSRounded1c-Medium.ttf",
+  "size": 3432624
+ },
+ {
+  "family": "M PLUS Rounded 1c",
+  "dir": "mplusrounded1c",
+  "src": "MPLUSRounded1c-Regular.ttf",
+  "file": "MPLUSRounded1c-Regular.ttf",
+  "size": 3389792
+ },
+ {
+  "family": "M PLUS Rounded 1c",
+  "dir": "mplusrounded1c",
+  "src": "MPLUSRounded1c-Thin.ttf",
+  "file": "MPLUSRounded1c-Thin.ttf",
+  "size": 2907880
+ },
+ {
+  "family": "Reggae One",
+  "dir": "reggaeone",
+  "src": "ReggaeOne-Regular.ttf",
+  "file": "ReggaeOne-Regular.ttf",
+  "size": 2153256
+ },
+ {
+  "family": "Rampart One",
+  "dir": "rampartone",
+  "src": "RampartOne-Regular.ttf",
+  "file": "RampartOne-Regular.ttf",
+  "size": 3722352
+ },
+ {
+  "family": "Noto Sans SC",
+  "dir": "notosanssc",
+  "src": "NotoSansSC[wght].ttf",
+  "file": "NotoSansSC_wght_.ttf",
+  "size": 17772300
+ },
+ {
+  "family": "Noto Serif SC",
+  "dir": "notoserifsc",
+  "src": "NotoSerifSC[wght].ttf",
+  "file": "NotoSerifSC_wght_.ttf",
+  "size": 25125512
+ }
+]
