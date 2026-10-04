@@ -1425,6 +1425,11 @@ def main():
     ap.add_argument("--vocal-stem", default=VOCAL_STEM,
                     help="separated vocal stem for vocal activity (default analysis/stems/vocals_kim.wav from "
                          "tools/transcribe_separate.py; falls back to REPET-SIM + VAD when missing)")
+    for _s in (sys.stdout, sys.stderr):  # help texts contain 残光 / ō / ：; never crash on a cp1252 / cp932 console
+        try:
+            _s.reconfigure(errors="replace")
+        except Exception:  # noqa: BLE001
+            pass
     args = ap.parse_args()
 
     audio_path = str(kit_env.resolve(args.audio))

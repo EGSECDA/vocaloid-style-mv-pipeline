@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# setup.sh -- one-time (and repeatable) setup of a tegaki-mv project on macOS / Linux (also works in Git Bash).
+# setup.sh -- one-time (and repeatable) setup of a vocaloid-style-mv project on macOS / Linux (also works in Git Bash).
 #
 # Works on the folder this script is in (the project root). Every step is idempotent: re-running only does
 # what is missing.
@@ -7,12 +7,13 @@
 #   2. browser                           uses Chrome / Edge; downloads Playwright's Chromium only if the channel is missing
 #   3. pip install -r requirements.txt   (+ the optional lyric-transcription set with --lyrics)
 #   4. python tools/fetch_fonts.py       Google Fonts TTFs (OFL) -> engine/fonts  (~260 MB, skipped when present)
-#   5. git clone --depth 1 https://github.com/852wa/JIZURA vendor/JIZURA   (skipped when present / JIZURA_DIR set)
+#   5. JIZURA -> vendor/JIZURA: shallow fetch of the tested commit fc16bfe (skipped when present / JIZURA_DIR set)
 #   6. node tools/build_jizura_bundle.mjs   -> jizura/app/jizura_engine.js
 #   7. python tools/check_env.py --webgl    REQUIRED vs OPTIONAL report (ffmpeg, NVENC, GPU/WebGL, Blender, Codex ...)
 #
 # Usage: ./setup.sh [--lyrics] [--fonts-from DIR] [--skip-pip] [--skip-fonts] [--skip-check] [--no-webgl]
-# Env:   PYTHON (interpreter), BROWSER_CHANNEL (chrome | msedge | chromium), JIZURA_DIR (existing clone)
+# Env:   PYTHON (interpreter), BROWSER_CHANNEL (chrome | msedge | chromium), JIZURA_DIR (existing clone; wins),
+#        JIZURA_REF (JIZURA branch / tag / full commit sha to fetch instead of the tested one, e.g. main)
 # Author: NikusonP -- vocaloid-style-mv-pipeline, MIT licence.
 set -euo pipefail
 
@@ -63,7 +64,7 @@ find_python() {
   return 1
 }
 
-step "tegaki-mv setup in $ROOT"
+step "vocaloid-style-mv setup in $ROOT"
 have node || die "node not found: install Node.js 20+ (https://nodejs.org)"
 have npm || die "npm not found: install Node.js 20+ (https://nodejs.org)"
 NODE_VER="$(node --version)"
@@ -153,13 +154,33 @@ else
 fi
 
 # ------------------------------------------------------------------------------------------ 5-6. JIZURA
-step "JIZURA (lyric-motion engine, MIT, (c) 852wa)"
-JZ="${JIZURA_DIR:-${JIZURA_REF:-$ROOT/vendor/JIZURA}}"
-if [ -d "$JZ/src" ]; then ok "clone present: $JZ"
+step "JIZURA (lyric-motion engine, MIT, (c) 2026 hakoniwa (github.com/852wa))"
+# the kit is tested against this commit (deny-lists, part tags, scheme indices); keep in sync with setup.ps1,
+# package.json (jizura:clone) and scripts/check_env.py. JIZURA_REF = branch / tag / full sha overrides it.
+JZ_PIN=fc16bfe43ea4a6c25a21f1caf04d17326de14f00
+JZ_REF="${JIZURA_REF:-$JZ_PIN}"
+JZ="${JIZURA_DIR:-$ROOT/vendor/JIZURA}"
+if [ -d "$JZ/src" ]; then
+  ok "clone present: $JZ"
+  if [ -z "${JIZURA_DIR:-}" ] && [[ $JZ_REF =~ ^[0-9a-f]{40}$ ]] && have git; then
+    JZ_HEAD="$(git -C "$JZ" rev-parse HEAD 2>/dev/null || true)"
+    if [[ $JZ_HEAD =~ ^[0-9a-f]{40}$ ]] && [ "$JZ_HEAD" != "$JZ_REF" ]; then
+      note "vendor/JIZURA is at ${JZ_HEAD:0:7}, not ${JZ_REF:0:7}: delete vendor/JIZURA and re-run setup to fetch it"
+    fi
+  fi
 else
   have git || die "git not found: install Git, or clone https://github.com/852wa/JIZURA yourself and set JIZURA_DIR"
   mkdir -p "$(dirname "$JZ")"
-  run git clone --depth 1 https://github.com/852wa/JIZURA "$JZ"
+  JZ_TESTED=""; [ "$JZ_REF" = "$JZ_PIN" ] && JZ_TESTED=" (tested commit)"
+  echo "   fetching https://github.com/852wa/JIZURA @ $JZ_REF$JZ_TESTED"
+  # shallow fetch of exactly one commit (works for a branch, a tag or a full sha); re-runnable after a failure
+  run git init -q "$JZ"
+  run git -C "$JZ" config remote.origin.url https://github.com/852wa/JIZURA
+  run git -C "$JZ" config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
+  printf '%s   > git -C %s fetch --depth 1 origin %s%s\n' "$C_DIM" "$JZ" "$JZ_REF" "$C_END"
+  git -C "$JZ" fetch --depth 1 origin "$JZ_REF" ||
+    die "fetching JIZURA @ $JZ_REF failed (JIZURA_REF must be a branch, a tag or a full 40-character commit sha)"
+  run git -C "$JZ" checkout -q --detach FETCH_HEAD
 fi
 run node tools/build_jizura_bundle.mjs --ref "$JZ"
 
@@ -182,13 +203,22 @@ fi
 
 step "Done"
 if [ ${#NOTES[@]} -gt 0 ]; then for n in "${NOTES[@]}"; do printf '%s   note: %s%s\n' "$C_NOTE" "$n" "$C_END"; done; fi
-cat <<'EOF'
+PYCMD="${PY[*]}"   # the interpreter setup used (in Git Bash 'python3' is often the Microsoft Store stub)
+if [ -f audio/song.wav ]; then
+  cat <<EOF
+   Next (from the project root; audio/song.wav is already there):
+     $PYCMD tools/analyze_audio.py                 (beats, bars, sections -> analysis/audio.json + overview.png)
+   then README.md section 3 (section 2 if it is the demo song). The demo smoke test needs a project without a song.
+EOF
+else
+  cat <<EOF
    Next (from the project root):
-     python3 demo/make_demo_song.py                (optional smoke test: synthesizes audio/song.wav)
+     $PYCMD demo/make_demo_song.py                (optional smoke test: synthesizes audio/song.wav)
      cp demo/lyrics_demo.lrc analysis/lyrics_mv.lrc
      cp demo/sections_demo.json analysis/sections.json      (optional: curated demo sections)
-     python3 tools/analyze_audio.py
-     node tools/stills.mjs --times 1,4,8,14,17,23 --sheet smoke
+     $PYCMD tools/analyze_audio.py
+     node tools/stills.mjs --times 1,3.5,8.4,10,12.5,13.6,18.4,19.5,21.2,23.3 --sheet smoke
      node tools/render_final.mjs --name demo        (add --codec x264 without an NVIDIA GPU)
-   See README.md (PROJECT_README.md in the template) for the full workflow.
+   See README.md (PROJECT_README.md in the template) for the full workflow; section 2 adds the 9:16 version + review sheets.
 EOF
+fi

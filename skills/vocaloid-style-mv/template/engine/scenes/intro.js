@@ -1,7 +1,9 @@
-/* zanko scenes: intro — the light that opens and closes the film.
+/* vocaloid-style-mv scenes: intro — the light that opens and closes the film.
  *
  *   ember      {mode:'breathe'|'ignite'|'collapse', stops, flares, blackFrom, crackAt, bg, keys}   shots 01 · 02 · 65
- *   titleRiff  {variant:'intro'|'outro', recap:[{bg,char,view,cx,h}], char, sky, cues, exit}   shots 03 · 64
+ *   titleRiff  {variant:'intro'|'outro', recap:[{bg,char,view,cx,h}], char, sky, cues, exit,   shots 03 · 64
+ *               glyphs:['残','光'], ruby:['ざん','こう'] (reading per glyph; false = none), sub:'afterglow',
+ *               hud:{title, when, bpm, geo, place, len} (the six corner strings; defaults are 残光's)}
  *   converge   {seed, whiteAt}                                                                   shot 51
  *   afterimage {text:'残光', sub:'afterglow', credit, color}                                     shot 66
  *
@@ -590,7 +592,7 @@
     ctx.restore();
 
     // ---------------- lockup small type (screen-fixed, after the camera has snapped home)
-    lockupType(ctx, t, tLock, P, 1 - EZ.out(seg(t, tExit, 0.3)));
+    lockupType(ctx, t, tLock, P, 1 - EZ.out(seg(t, tExit, 0.3)), a);
     grain(ctx, t, a.grain ?? 0.07);
     hudCorners(ctx, S, P, at, cue, outro, 1 - exitK);
     // ---------------- accents: flash on the sun cue / slams / lockup, 2-frame negative on cue.neg
@@ -796,11 +798,12 @@
     let push = 0; for (const b of Bs) push += 14 * EZ.out(seg(t, b, 0.25));
     push *= 1 - lockK;
     const exitOut = EZ.in(seg(t, at(cue.exit), 0.4));
+    const [g0, g1] = S.args.glyphs || ['残', '光'];   // the two title glyphs (args.glyphs)
     const showZan = t < tk || splitK > 0;             // 光 replaces 残 until the split
     const list = [];
     // after 光 has slammed, 残 slides back in from beyond the left edge on the split
-    if (showZan) { const L = mix(t >= tk ? { x: -620, y: 540, s: 940 } : zMono, zSplit, zLock, splitK, lockK); L.x -= push + exitOut * 900; L.ch = '残'; L.dt = t - tz; list.push(L); }
-    if (t >= tk) { const L = mix(kMono, kSplit, kLock, splitK, lockK); L.x += push + exitOut * 900; L.ch = '光'; L.dt = t - tk; list.push(L); }
+    if (showZan) { const L = mix(t >= tk ? { x: -620, y: 540, s: 940 } : zMono, zSplit, zLock, splitK, lockK); L.x -= push + exitOut * 900; L.ch = g0; L.dt = t - tz; list.push(L); }
+    if (t >= tk) { const L = mix(kMono, kSplit, kLock, splitK, lockK); L.x += push + exitOut * 900; L.ch = g1; L.dt = t - tk; list.push(L); }
     for (const L of list) {
       const sc = slam(L.dt, 1.32);
       const s = L.s * sc;
@@ -829,33 +832,36 @@
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha *= alpha; ctx.drawImage(sc, 0, 0); ctx.restore();
   }
 
-  function lockupType(ctx, t, tl, P, alpha) {
+  function lockupType(ctx, t, tl, P, alpha, a = {}) {
     if (t < tl || alpha <= 0) return;
     const zx = LK.x - LK.gdx, kx = LK.x + LK.gdx;
     ctx.save(); ctx.globalAlpha *= alpha;
-    // ruby: one mora at a time, rising into place
-    const ruby = [['ざ', zx, -1], ['ん', zx, 1], ['こ', kx, -1], ['う', kx, 1]];
+    // ruby: one mora at a time, rising into place (args.ruby: the reading of each glyph, centred over it)
+    const ruby = [];
+    (a.ruby === false ? [] : a.ruby || ['ざん', 'こう']).slice(0, 2).forEach((rd, j) => {
+      const chs = [...rd]; chs.forEach((ch, i) => ruby.push([ch, j ? kx : zx, (i - (chs.length - 1) / 2) * 2]));
+    });
     ruby.forEach(([ch, base, side], i) => {
       const k = EZ.out(seg(t, tl + 0.12 + i * 0.06, 0.45)); if (k <= 0) return;
       const px = Math.round(base + side * LK.rubySize * 0.62);
       ctx.save(); ctx.globalAlpha *= k; D.font(ctx, LK.rubySize, 'gothic', 500); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillStyle = P.glow; ctx.fillText(ch, px, LK.rubyY + 16 * (1 - k)); ctx.restore();
     });
-    // 'afterglow': tracking closes in from wide
+    // 'afterglow' (args.sub): tracking closes in from wide
     const k2 = EZ.out(seg(t, tl + 0.3, 1.4));
     if (k2 > 0) {
       ctx.save(); ctx.globalAlpha *= clamp(k2 * 2); D.font(ctx, LK.subSize, 'serif', 300); ctx.letterSpacing = (lerp(46, 14, k2)).toFixed(1) + 'px';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = P.hi; ctx.fillText('afterglow', LK.x + lerp(23, 7, k2), LK.subY); ctx.restore();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = P.hi; ctx.fillText(a.sub ?? 'afterglow', LK.x + lerp(23, 7, k2), LK.subY); ctx.restore();
       // rule + end ticks
       const rk = EZ.out(seg(t, tl + 0.2, 0.8)), rw = 290 * rk;
       ctx.strokeStyle = rgba(P.hi, 0.4); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(LK.x - rw, LK.subY + 34); ctx.lineTo(LK.x + rw, LK.subY + 34);
       ctx.moveTo(LK.x - rw, LK.subY + 28); ctx.lineTo(LK.x - rw, LK.subY + 40); ctx.moveTo(LK.x + rw, LK.subY + 28); ctx.lineTo(LK.x + rw, LK.subY + 40); ctx.stroke();
     }
-    // author credit under the rule
+    // author credit under the rule (Z.CREDIT; nothing when it is empty, like the 9:16 footer)
     const k3 = EZ.out(seg(t, tl + 0.55, 0.9));
-    if (k3 > 0) {
+    if (k3 > 0 && Z.CREDIT) {
       ctx.save(); ctx.globalAlpha *= clamp(k3 * 1.4) * 0.9; D.font(ctx, 25, 'gothic', 500); ctx.letterSpacing = (lerp(18, 4, k3)).toFixed(1) + 'px';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = P.hi; ctx.fillText(Z.CREDIT || 'Music / Lyrics / Movie：NikusonP', LK.x + 2, LK.subY + 84 + 10 * (1 - k3)); ctx.restore();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = P.hi; ctx.fillText(Z.CREDIT, LK.x + 2, LK.subY + 84 + 10 * (1 - k3)); ctx.restore();
     }
     ctx.restore();
   }
@@ -865,13 +871,16 @@
     const m = 96, top = 78, bot = H - 70;
     ctx.save(); ctx.globalAlpha *= alpha;
     const t1 = at(cue.hud), t2 = at(cue.hud2);
-    hud(ctx, scramble('「残光」 ZANKŌ — afterglow', t, t1, 30, 1), m, top, { size: 20, color: P.hi, alpha: 0.8 });
-    hud(ctx, scramble(outro ? 'DAWN / 夜明け' : 'DUSK / 逢魔が時', t, t1 + 0.12, 30, 2), m, top + 26, { size: 16, color: P.glow, alpha: 0.6 });
-    hud(ctx, scramble('BPM 131 · 4/4', t, t1 + 0.05, 30, 3), W - m, top, { size: 20, color: P.hi, alpha: 0.8, align: 'right' });
+    // corner strings (args.hud overrides any of them; len = the song length shown before the running clock)
+    const HS = Object.assign({ title: '「残光」 ZANKŌ — afterglow', when: outro ? 'DAWN / 夜明け' : 'DUSK / 逢魔が時', bpm: 'BPM 131 · 4/4',
+      geo: '35°41′N 139°46′E', place: '踏切 No.7 — 上り', len: '03:44' }, S.args.hud || {});
+    hud(ctx, scramble(HS.title, t, t1, 30, 1), m, top, { size: 20, color: P.hi, alpha: 0.8 });
+    hud(ctx, scramble(HS.when, t, t1 + 0.12, 30, 2), m, top + 26, { size: 16, color: P.glow, alpha: 0.6 });
+    hud(ctx, scramble(HS.bpm, t, t1 + 0.05, 30, 3), W - m, top, { size: 20, color: P.hi, alpha: 0.8, align: 'right' });
     hud(ctx, scramble(`BAR ${pad(Math.max(0, S.clock.bar(t) + 1), 3)} · ${S.clock.inBar(t) + 1}/4`, t, t1 + 0.18, 30, 4), W - m, top + 26, { size: 16, color: P.glow, alpha: 0.6, align: 'right' });
-    hud(ctx, scramble('35°41′N 139°46′E', t, t2, 30, 5), m, bot, { size: 18, color: P.hi, alpha: 0.7 });
-    hud(ctx, scramble('踏切 No.7 — 上り', t, t2 + 0.1, 30, 6), m, bot - 26, { size: 16, color: P.glow, alpha: 0.55 });
-    hud(ctx, scramble('03:44 / ' + clockStr(t), t, t2 + 0.05, 30, 7), W - m, bot, { size: 18, color: P.hi, alpha: 0.7, align: 'right' });
+    hud(ctx, scramble(HS.geo, t, t2, 30, 5), m, bot, { size: 18, color: P.hi, alpha: 0.7 });
+    hud(ctx, scramble(HS.place, t, t2 + 0.1, 30, 6), m, bot - 26, { size: 16, color: P.glow, alpha: 0.55 });
+    hud(ctx, scramble(HS.len + ' / ' + clockStr(t), t, t2 + 0.05, 30, 7), W - m, bot, { size: 18, color: P.hi, alpha: 0.7, align: 'right' });
     hud(ctx, scramble(outro ? 'END TITLE · ' + pad(recapIndex(S) + 1) + '/12' : 'MAIN TITLE', t, t2 + 0.15, 30, 8), W - m, bot - 26, { size: 16, color: P.glow, alpha: 0.55, align: 'right' });
     // crop marks
     const ck = EZ.out(seg(t, t1, 0.5)) * 18;

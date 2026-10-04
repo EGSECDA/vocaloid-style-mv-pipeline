@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""new_project.py -- scaffold a tegaki lyric-MV project from the skill's template.
+"""new_project.py -- scaffold a vocaloid-style-mv (lyric-MV) project from the skill's template.
 
-  python scripts/new_project.py <target_dir> [--song song.wav] [--lyrics lyrics.lrc] [--title NAME]
-                                [--credit "Music / Lyrics / Movie：Artist"] [--setup] [--setup-args "..."] [--force]
+  python scripts/new_project.py <target_dir> [--song song.wav] [--lyrics lyrics.lrc] [--title NAME] [--title-sub LATIN]
+                                [--artist NAME] [--credit "Music / Lyrics / Movie：Artist"] [--setup] [--setup-args "..."]
+                                [--force]
 
 What it does
   * copies template/ to <target_dir>, leaving out everything that setup fetches or a tool generates
@@ -12,7 +13,9 @@ What it does
   * --song   -> audio/song.wav (WAV is copied as is; mp3 / flac / m4a / ogg ... are converted with ffmpeg)
   * --lyrics -> analysis/lyrics_mv.lrc when the file has LRC time tags, else analysis/lyrics_official.txt
                 (plain official text: timings come later, see references/03-audio-and-lyrics.md)
-  * --title / --credit set Z.TITLE / Z.CREDIT in engine/timeline.js (HUD, vertical header, end card)
+  * --title / --title-sub / --artist / --credit set Z.TITLE / Z.TITLE_SUB / Z.ARTIST / Z.CREDIT in engine/timeline.js
+                (HUD, end card, 9:16 header and footer). --title alone empties Z.TITLE_SUB (the demo's 'HOTARUBI');
+                --credit alone also sets Z.ARTIST to the name after its last colon (： or :)
   * --setup  runs setup.ps1 (Windows) or setup.sh (macOS / Linux) inside the new project
 Then it prints the next steps. Stdlib only. Author: NikusonP -- vocaloid-style-mv-pipeline, MIT licence.
 """
@@ -102,25 +105,35 @@ def import_lyrics(src: Path, dst: Path):
     else:
         out = dst / "analysis" / "lyrics_official.txt"
         kind = "plain text (no time tags): timings still needed"
-    out.write_text(text.replace("\r\n", "\n"), encoding="utf-8")
+    out.write_text(text.replace("\r\n", "\n"), encoding="utf-8", newline="\n")   # LF on Windows too
     return out, kind
 
 
-def set_timeline_strings(dst: Path, title: str | None, credit: str | None):
+def timeline_values(a) -> dict:
+    """--title / --title-sub / --artist / --credit -> {Z key: new string or None (= keep the template's value)}."""
+    sub = a.title_sub if a.title_sub is not None else ("" if a.title else None)   # a new title drops 'HOTARUBI'
+    artist = a.artist
+    if artist is None and a.credit:
+        artist = re.split(r"[：:]", a.credit)[-1].strip() or None   # 'Music / Lyrics / Movie：Name' -> 'Name'
+    return {"TITLE": a.title, "TITLE_SUB": sub, "ARTIST": artist, "CREDIT": a.credit}
+
+
+def set_timeline_strings(dst: Path, values: dict):
+    """Rewrite the `Z.<KEY> = '...';` string literals at the top of engine/timeline.js (None = leave as is)."""
     tl = dst / "engine" / "timeline.js"
-    if not tl.is_file() or not (title or credit):
+    if not tl.is_file() or all(v is None for v in values.values()):
         return
     s = tl.read_text(encoding="utf-8")
-    js = lambda v: "'" + v.replace("\\", "\\\\").replace("'", "\\'") + "'"  # noqa: E731
-    if title:
-        s, n = re.subn(r"^(\s*Z\.TITLE\s*=\s*)'[^'\n]*'", lambda m: m.group(1) + js(title), s, count=1, flags=re.M)
-        if not n:
-            print("  note: Z.TITLE not found in engine/timeline.js (set it by hand)")
-    if credit:
-        s, n = re.subn(r"^(\s*Z\.CREDIT\s*=\s*)'[^'\n]*'", lambda m: m.group(1) + js(credit), s, count=1, flags=re.M)
-        if not n:
-            print("  note: Z.CREDIT not found in engine/timeline.js (set it by hand)")
-    tl.write_text(s, encoding="utf-8")
+    js = lambda v: "'" + (v.replace("\\", "\\\\").replace("'", "\\'")  # noqa: E731
+                          .replace("\r", "").replace("\n", "\\n")) + "'"
+    for key, v in values.items():
+        if v is None:
+            continue
+        # the literal may already hold escapes (\' \\) from an earlier run with --force
+        s, n = re.subn(rf"^(\s*Z\.{key}\s*=\s*)'(?:[^'\\\n]|\\.)*'", lambda m: m.group(1) + js(v), s, count=1,
+                       flags=re.M)
+        print(f"  Z.{key:<10}= {js(v)}" if n else f"  note: Z.{key} not found in engine/timeline.js (set it by hand)")
+    tl.write_text(s, encoding="utf-8", newline="\n")   # keep the template's LF line endings on Windows
 
 
 def run_setup(dst: Path, extra: list[str]) -> int:
@@ -142,15 +155,18 @@ def main() -> int:
     ap.add_argument("--song", help="the song (WAV preferred; other formats are converted with ffmpeg)")
     ap.add_argument("--lyrics", help="lyrics: .lrc with time tags, or the official plain text")
     ap.add_argument("--title", help="film title for Z.TITLE in engine/timeline.js")
+    ap.add_argument("--title-sub", help="small Latin line under the title for Z.TITLE_SUB (default with --title: none)")
+    ap.add_argument("--artist", help="artist name for Z.ARTIST (9:16 header; default: the name after --credit's colon)")
     ap.add_argument("--credit", help="credit line for Z.CREDIT, e.g. 'Music / Lyrics / Movie：Artist'")
     ap.add_argument("--setup", action="store_true", help="run setup.ps1 / setup.sh in the new project")
     ap.add_argument("--setup-args", default="", help='extra setup arguments, e.g. "-Lyrics" (Windows) or "--lyrics"')
     ap.add_argument("--force", action="store_true", help="copy into an existing non-empty folder (template files are overwritten)")
+    for _s in (sys.stdout, sys.stderr):  # help texts contain 残光 / ō / ：; never crash on a cp1252 / cp932 console
+        try:
+            _s.reconfigure(errors="replace")
+        except Exception:  # noqa: BLE001
+            pass
     a = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(errors="replace")
-    except Exception:  # noqa: BLE001
-        pass
 
     dst = Path(a.target).expanduser().resolve()
     tpl = TEMPLATE.resolve()
@@ -175,7 +191,13 @@ def main() -> int:
     if lyrics:
         out, kind = import_lyrics(lyrics, dst)
         print(f"  lyrics : {lyrics.name} -> {out.relative_to(dst).as_posix()} ({kind})")
-    set_timeline_strings(dst, a.title, a.credit)
+    values = timeline_values(a)
+    set_timeline_strings(dst, values)
+    if song or lyrics:
+        keep = [f"Z.{k}" for k, v in values.items() if v is None]
+        if keep:
+            print(f"  note: {', '.join(keep)} still hold the demo's values (蛍火 / HOTARUBI / NikusonP): set them in "
+                  "engine/timeline.js (or pass --title / --title-sub / --artist / --credit)")
 
     rc = 0
     if a.setup:
@@ -191,15 +213,21 @@ def main() -> int:
         steps.append("# add the official lyrics with timings as analysis/lyrics_mv.lrc (references/03-audio-and-lyrics.md)")
     if lyrics and not song:
         steps.append("# copy the song to audio/song.wav (WAV; or re-run new_project.py --force --song FILE)")
-    if not song and not lyrics:
+    demo = not song and not lyrics
+    if demo:
         steps += [f"{py} demo/make_demo_song.py          # smoke test without a song (or copy yours to audio/song.wav)",
                   ("copy demo\\lyrics_demo.lrc analysis\\lyrics_mv.lrc" if IS_WIN else
                    "cp demo/lyrics_demo.lrc analysis/lyrics_mv.lrc"),
                   ("copy demo\\sections_demo.json analysis\\sections.json" if IS_WIN else
                    "cp demo/sections_demo.json analysis/sections.json") + "   # optional: curated demo sections"]
+    name = "demo" if demo else "first"
     steps += [f"{py} tools/analyze_audio.py              # beats, bars, sections -> analysis/audio.json + overview.png",
-              "node tools/stills.mjs --times 1,4,8,14,17,23 --sheet first   # stills + contact sheet in render/stills/",
-              "node tools/render_final.mjs --name first          # full render + audio -> render/first.mp4"]
+              ("node tools/stills.mjs --times 1,3.5,8.4,10,12.5,13.6,18.4,19.5,21.2,23.3 --sheet smoke   "
+               "# -> render/stills/smoke.jpg" if demo else
+               "node tools/stills.mjs --times 1,4,8,14,17,23 --sheet first   # stills + contact sheet in render/stills/"),
+              f"node tools/render_final.mjs --name {name}          # full render + audio -> render/{name}.mp4"]
+    if demo:
+        steps.append("# 9:16 version + review sheets: README.md section 2")
     if lyrics and not LRC_TAG.search(lyrics.read_bytes().decode("utf-8-sig", errors="replace")):
         steps.insert(-3, "# lyrics have no timings yet: see references/03-audio-and-lyrics.md (alignment) "
                          "before writing analysis/lyrics_mv.lrc")

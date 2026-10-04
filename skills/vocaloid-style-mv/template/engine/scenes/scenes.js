@@ -1,4 +1,4 @@
-/* zanko engine — base scenes. Special-purpose scenes live in engine/scenes/*.js and register with Z.scene too. */
+/* vocaloid-style-mv engine — base scenes. Special-purpose scenes live in engine/scenes/*.js and register with Z.scene too. */
 (() => {
   'use strict';
   const Z = window.Z, D = Z.draw, E = Z.ease;

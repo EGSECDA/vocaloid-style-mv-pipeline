@@ -1,4 +1,4 @@
-/* zanko engine — WebGL2 compositor / post pipeline.
+/* vocaloid-style-mv engine — WebGL2 compositor / post pipeline.
  *
  *   Z.post.init(outCanvas)
  *   Z.post.render(sceneCanvas, textCanvas, P)      P = post params for this frame (see DEFAULTS)

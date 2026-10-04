@@ -1,4 +1,4 @@
-/* zanko engine — frame orchestration.
+/* vocaloid-style-mv engine — frame orchestration.
  *
  * Contract used by tools/render_frames.mjs:
  *   window.ready            Promise, resolves when assets/fonts/plans are loaded
@@ -52,6 +52,8 @@
     ramp('ember', [[0, '#07040a'], [0.35, '#2a0c14'], [0.6, '#8e1f22'], [0.8, '#f06a2a'], [1, '#ffe2a8']]);                      // darkness + fire
     ramp('dawn', [[0, '#120d24'], [0.3, '#3a2d63'], [0.55, '#9a6aa0'], [0.75, '#f3a6a0'], [0.9, '#ffd9b0'], [1, '#fffaf0']]);     // first light
     ramp('mono', [[0, '#0b0a0d'], [1, '#f4efe6']]);
+    ramp('day', [[0, '#0e2a47'], [0.5, '#2c8fc4'], [0.8, '#bfe8fa'], [1, '#ffffff']]);                                          // high-key daylight
+    if (row > c.height) console.warn(`LUT atlas: ${row} rows > ${c.height} (6+ palettes): raise LUT_ROWS + the LUT texture height in gl.js and the atlas height here`);
     Z.post.setLutAtlas(c);
     Z.lutAtlas = c;
   }

@@ -1,4 +1,4 @@
-# tegaki-mv project -- Python packages (Python 3.10+).
+# vocaloid-style-mv project -- Python packages (Python 3.10+).
 #   python -m pip install -r requirements.txt          (setup.ps1 / setup.sh run this)
 # Author: NikusonP -- vocaloid-style-mv-pipeline, MIT licence.
 

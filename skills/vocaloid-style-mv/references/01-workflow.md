@@ -2,7 +2,7 @@
 
 Contents: 0 Setup · 1 Listen · 2 Concept · 3 Assets · 4 Storyboard & timeline · 5 Build · 6 Review · 7 Deliver · Time budget · Parallelising · File conventions
 
-All commands run from the **project root** (the folder created by `scripts/new_project.py`). Paths below are relative to it.
+All commands run from the **project root** (the folder created by `<skill>/scripts/new_project.py`; `<skill>` = the folder containing `SKILL.md`). Paths below are relative to it.
 
 ---
 
@@ -10,12 +10,14 @@ All commands run from the **project root** (the folder created by `scripts/new_p
 
 ```bash
 python <skill>/scripts/check_env.py                       # what's installed (REQUIRED vs OPTIONAL)
-python <skill>/scripts/new_project.py my-mv --song song.wav --lyrics lyrics.txt --setup
+python <skill>/scripts/new_project.py my-mv --song song.wav --lyrics lyrics.txt \
+       --title <title> --title-sub <Latin subtitle> --artist <artist> --credit "Music / Lyrics / Movie：<artist>" --setup
 cd my-mv
 ```
-`--setup` runs `setup.ps1` / `setup.sh`: npm install (Playwright), pip install, font download (`tools/fetch_fonts.py` → `engine/fonts/`), `git clone` of JIZURA into `vendor/JIZURA`, `node tools/build_jizura_bundle.mjs` → `jizura/app/jizura_engine.js`.
+`--title` / `--title-sub` / `--artist` / `--credit` set `Z.TITLE`, `Z.TITLE_SUB`, `Z.ARTIST`, `Z.CREDIT` in `engine/timeline.js` (HUD, end card, 9:16 header and footer). `--credit` alone also sets the artist (the text after the credit's last colon); `--title` alone empties the demo subtitle.
+`--setup` runs `setup.ps1` / `setup.sh`: npm install (Playwright), pip install, font download (`tools/fetch_fonts.py` → `engine/fonts/`), `git clone` of JIZURA into `vendor/JIZURA` checked out at the tested commit `fc16bfe` (set the environment variable `JIZURA_REF` to another branch / tag / sha, e.g. `JIZURA_REF=main`, to follow upstream; a local `JIZURA_DIR` still wins), `node tools/build_jizura_bundle.mjs` → `jizura/app/jizura_engine.js`. Plain-text lyrics (no timestamps) need the alignment stack: add `--setup-args "-Lyrics"` (bash `"--lyrics"`) and install CPU torch into `vendor/pydeps_torch` (03 §9).
 
-**Smoke test (recommended on a new machine):** `python demo/make_demo_song.py` → copy `demo/lyrics_demo.lrc` to `analysis/lyrics_mv.lrc` → `python tools/analyze_audio.py` → `node tools/stills.mjs --times 2,8,14 --sheet smoke` → look at `render/stills/smoke.jpg`. If WebGL reports SwiftShader instead of the GPU, fix that first (GPU flags / browser channel) — software rendering is ~10× slower.
+**Smoke test (recommended on a new machine) — in a throwaway project scaffolded without `--song`** (`python <skill>/scripts/new_project.py _smoke --setup`; it prints the steps), never in the film's project: the demo writes `audio/song.wav` and overwrites `analysis/lyrics_mv.lrc` and `analysis/sections.json`. In `_smoke`: `python demo/make_demo_song.py` → copy `demo/lyrics_demo.lrc` to `analysis/lyrics_mv.lrc` and `demo/sections_demo.json` to `analysis/sections.json` → `python tools/analyze_audio.py` → `node tools/stills.mjs --times 1,3.5,8.4,10,12.5,13.6,18.4,19.5,21.2,23.3 --sheet smoke` → look at `render/stills/smoke.jpg` (the full list, with the 16:9 and 9:16 renders, is in the project's `README.md` §2). If WebGL reports SwiftShader instead of the GPU, fix that first (GPU flags / browser channel) — software rendering is ~10× slower. Run the smoke test before scaffolding the film and the film's project can reuse its fonts: `--setup-args "-FontsFrom ../_smoke/engine/fonts"` (bash `--fonts-from`; sibling folders).
 
 Acceptance: `window.ready` resolves with `renderer` naming the real GPU; a still renders in < 0.5 s.
 
@@ -44,7 +46,7 @@ Read `references/04-asset-generation.md`.
 1. Character bible `docs/CHARACTER.md` (hair/eyes/outfit/signature item/motion prop/palette) + a shared **style block**.
 2. Three master candidates → pick → `assets/char/REF_master.png`. **Checkpoint:** contact sheet.
 3. Poses (from the storyboard's needs: close-ups, back view, hands, signature props, dynamic poses, emotional beats) → `assets/char/*.png` (RGBA). Two takes for hard poses.
-4. Locations (from the lyrics' imagery + the colour script) → `assets/bg/*.png`. Day/dusk versions can be re-graded to night with LUTs; generate true night/dawn variants for key locations.
+4. Locations (from the lyrics' imagery + the colour script) → `assets/bg/*.png`. Generate the time-of-day variants your colour script needs for the 2–3 key locations (e.g. noon / golden hour / night). A LUT can shift a plate's mood, but light sources (sun position, cast shadows, lamps, windows) must be painted.
 5. Props (transparent) for symbolic objects.
 
 ```bash
@@ -54,8 +56,8 @@ Acceptance: every image viewed; character recognisably identical across poses; n
 
 ## 4. Storyboard & timeline
 
-1. `docs/STORYBOARD.md`: a table — `# | time | lyric | scene | content` — one row per shot (60–80 shots for a 3–4 min song; chorus shots 0.9–2 s, verse shots 2.5–5 s, a few long holds). Map each lyric line to an image that *answers* it (see 02 §5). Mark the signature moments.
-2. `engine/timeline.js`: the edit. Start from the template's commented demo timeline (「蛍火」): keep its structure — film identity (`Z.TITLE`, `Z.TITLE_SUB`, `Z.CREDIT`), helpers, JIZURA plans + curation, HUD, global FX, `Z.VERTICAL_CFG` — and replace the shots with your storyboard. Helpers inside `Z.setup(audio)`:
+1. `docs/STORYBOARD.md`: a table — `# | time | lyric | scene | content` — one row per shot (60–80 shots for a 3–4 min song; chorus shots 0.9–2 s, verse shots 2.5–5 s, a few long holds). Think in beats when the tempo is high: at 160+ BPM chorus shots of 2–4 beats; per-beat scenes cut every beat (0.33–0.37 s), so run `burst` with `every: 2` and keep `kanjiSlam` (one slam per beat) to ≤ 2 bars. Map each lyric line to an image that *answers* it (see 02 §5). Mark the signature moments.
+2. `engine/timeline.js`: the edit. Start from the template's commented demo timeline (「蛍火」): keep its structure — film identity (`Z.TITLE`, `Z.TITLE_SUB`, `Z.ARTIST`, `Z.CREDIT`), helpers, JIZURA plans + curation, HUD, global FX, `Z.VERTICAL_CFG` — and replace the shots with your storyboard. The demo is a night film: re-tune every night-specific value that does not fit your film's key (palette consts, `Z.LOOK_DEFAULT`, JIZURA `schemes`, HUD colours, the 9:16 surround; 02 §13). Helpers inside `Z.setup(audio)`:
    - `B(n)` = start of bar *n* using the bar numbers of `audio.json` / `sections.json` (`bars[].index`; songs with a pickup have a bar 0, songs without don't — look the bar up by index, not by array position);
    - `nb(t)` = nearest beat to `t` (snap lyric onsets to the grid).
    ```js
@@ -83,7 +85,7 @@ Read every sheet. Use `references/09-qa-and-lessons.md` (checklist + failure mod
 
 ## 7. Deliver
 
-`references/08-render-and-delivery.md`: 16:9 master, share encode, 9:16 vertical (`engine/vertical.html`, configured by `Z.VERTICAL_CFG` in the timeline: which shots keep their full 16:9 composition, plan map, header text), 720p previews, credits (title lockup + outro + end card + README), optional upload. Report: file list with sizes, durations, what was verified, what is uncertain (e.g. transcribed lyric lines).
+`references/08-render-and-delivery.md`: 16:9 master, share encode, 9:16 vertical (`engine/vertical.html`, configured by `Z.VERTICAL_CFG` in the timeline: which shots keep their full 16:9 composition, plan map, header text, lyric `schemes` and the `ambience` tint of the surround), 720p previews, credits (title lockup + outro + end card + README), optional upload. Report: file list with sizes, durations, what was verified, what is uncertain (e.g. transcribed lyric lines).
 
 ---
 

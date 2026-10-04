@@ -42,6 +42,11 @@ def main():
     ap.add_argument("--model", default="large-v3", help="faster-whisper model (default large-v3)")
     ap.add_argument("--out", default=os.environ.get("SCORE_OUT", "score_results.json"),
                     help="output file name in analysis/asr/ (default score_results.json)")
+    for _s in (sys.stdout, sys.stderr):  # help texts contain 残光 / ō / ：; never crash on a cp1252 / cp932 console
+        try:
+            _s.reconfigure(errors="replace")
+        except Exception:  # noqa: BLE001
+            pass
     args = ap.parse_args()
     tests = load_tests(args.tests)
     kit_env.add_nvidia_dll_dirs()   # pip CUDA wheels must be visible before ctranslate2 loads

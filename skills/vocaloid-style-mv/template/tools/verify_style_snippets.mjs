@@ -4,7 +4,9 @@
 //    (software SwiftShader on purpose, so the check does not depend on the GPU)
 //  - every ```js block passes `node --check`, and the concatenated blocks pass small unit tests
 //   node tools/verify_style_snippets.mjs [--md docs/STYLE_RESEARCH.md]
-// The cookbook ships with the kit as examples/zanko/STYLE_RESEARCH.md; copy it to docs/ or point --md at it.
+// The cookbook is examples/zanko/STYLE_RESEARCH.md in the kit repo (not in the installed skill folder; online:
+// https://raw.githubusercontent.com/EGSECDA/vocaloid-style-mv-pipeline/main/examples/zanko/STYLE_RESEARCH.md);
+// copy it to docs/ or point --md at it.
 // Exit code 1 when anything fails. Author: NikusonP -- vocaloid-style-mv-pipeline, MIT licence.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -21,7 +23,7 @@ Env: BROWSER_CHANNEL (falls back to Playwright's bundled Chromium)`);
 
 const mdPath = path.resolve(ROOT, cliArg('md', 'docs/STYLE_RESEARCH.md'));
 if (!fs.existsSync(mdPath)) {
-  console.error(`style cookbook not found: ${mdPath}\n  copy <kit>/examples/zanko/STYLE_RESEARCH.md to docs/ or pass --md <path>`);
+  console.error(`style cookbook not found: ${mdPath}\n  copy <kit repo>/examples/zanko/STYLE_RESEARCH.md to docs/ or pass --md <path>\n  (online: https://raw.githubusercontent.com/EGSECDA/vocaloid-style-mv-pipeline/main/examples/zanko/STYLE_RESEARCH.md)`);
   process.exit(1);
 }
 const md = fs.readFileSync(mdPath, 'utf8').replace(/\r\n/g, '\n');

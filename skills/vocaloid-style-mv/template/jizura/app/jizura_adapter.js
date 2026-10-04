@@ -1,4 +1,5 @@
-/* zanko ⇄ JIZURA adapter: drive the JIZURA 字面 engine (MIT, (c) 852wa) as a deterministic lyric layer.
+/* vocaloid-style-mv ⇄ JIZURA adapter: drive the JIZURA 字面 engine (MIT, (c) 2026 hakoniwa (github.com/852wa)) as a
+ * deterministic lyric layer.
  *
  * Load order: seeded Math.random shim → jizura_engine.js (tools/build_jizura_bundle.mjs) → this file.
  *
@@ -97,9 +98,15 @@
     async addPlan(name, p) {
       const project = mergeProject(p);
       const plan = J.plan(project, S.audio);
-      // keep only schemes whose background is dark (light-bg schemes draw dark text that vanishes over night scenes)
-      if (p.schemes === 'dark' || Array.isArray(p.schemes)) {
-        const ok = Array.isArray(p.schemes) ? p.schemes : plan.style.schemes.map((s, i) => (J.lum(s.bg) < 0.25 ? i : -1)).filter(i => i >= 0);
+      // p.schemes: which of the style's colour schemes the cuts may use (each cut's scheme is remapped into that set)
+      //   'dark'   schemes with a dark background (luminance < 0.25): light text, for night / dusk films
+      //            (light-background schemes draw dark text that vanishes over night scenes)
+      //   'light'  schemes with a light background (luminance > 0.6): dark text, for daylight / bright films
+      //   [i, …]   explicit scheme indices of the style
+      // A style with no matching scheme keeps JIZURA's own choice (e.g. crimson, hud, mono have no light scheme).
+      if (p.schemes === 'dark' || p.schemes === 'light' || Array.isArray(p.schemes)) {
+        const pick = test => plan.style.schemes.map((s, i) => (test(J.lum(s.bg)) ? i : -1)).filter(i => i >= 0);
+        const ok = Array.isArray(p.schemes) ? p.schemes : p.schemes === 'dark' ? pick(l => l < 0.25) : pick(l => l > 0.6);
         if (ok.length) for (const c of plan.cuts) c.scheme = ok[(c.scheme | 0) % ok.length];
       }
       const R = new J.Renderer();

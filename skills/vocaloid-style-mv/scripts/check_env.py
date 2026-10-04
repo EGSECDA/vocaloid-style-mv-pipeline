@@ -33,6 +33,7 @@ HERE = Path(__file__).resolve().parent
 IS_WIN = os.name == "nt"
 IS_MAC = sys.platform == "darwin"
 MIN_NODE, MIN_PY = 20, (3, 10)
+JIZURA_PIN = "fc16bfe43ea4a6c25a21f1caf04d17326de14f00"   # the JIZURA commit setup fetches (tested); env JIZURA_REF overrides
 
 
 # ---------------------------------------------------------------------------------------------- helpers
@@ -298,7 +299,7 @@ def check_project(R: Report, project: Path):
               "" if len(have) == len(lst) else "python tools/fetch_fonts.py (setup does it)")
     else:
         R.add(g, "fonts", False, "engine/fonts/manifest.json missing", "python tools/fetch_fonts.py")
-    env_jz = os.environ.get("JIZURA_DIR") or os.environ.get("JIZURA_REF")
+    env_jz = os.environ.get("JIZURA_DIR")
     jz = (project / env_jz).resolve() if env_jz else project / "vendor" / "JIZURA"
     if (jz / "src").is_dir():
         head = ""
@@ -308,9 +309,12 @@ def check_project(R: Report, project: Path):
                 head = (jz / ".git" / head[5:].strip()).read_text().strip()
         except OSError:
             pass
-        R.add(g, "JIZURA clone", True, f"{jz}" + (f" @{head[:10]}" if head else ""))
+        R.add(g, "JIZURA clone", True, f"{jz}" + (f" @{head[:10]}" if head else ""),
+              "" if head.startswith(JIZURA_PIN) else f"the kit is tested with JIZURA {JIZURA_PIN[:7]} (what setup fetches "
+                                                      "unless JIZURA_REF is set): check the stills after a change")
     else:
-        R.add(g, "JIZURA clone", False, f"{jz} missing", "git clone --depth 1 https://github.com/852wa/JIZURA vendor/JIZURA")
+        R.add(g, "JIZURA clone", False, f"{jz} missing",
+              "run setup (fetches the tested JIZURA commit; env JIZURA_REF overrides), or: npm run jizura:clone")
     b = project / "jizura" / "app" / "jizura_engine.js"
     R.add(g, "JIZURA bundle", b.is_file(), f"jizura/app/jizura_engine.js ({b.stat().st_size / 1e6:.1f} MB)" if b.is_file()
           else "missing", "" if b.is_file() else "node tools/build_jizura_bundle.mjs")
@@ -386,16 +390,17 @@ def main() -> int:
     ap.add_argument("--webgl", action="store_true", help="launch the render browser headless and report the WebGL2 renderer")
     ap.add_argument("--quick", action="store_true", help="do not start Blender / Codex to read their versions")
     ap.add_argument("--json", action="store_true", help="print the report as JSON")
+    for _s in (sys.stdout, sys.stderr):  # paths / versions may hold non-ASCII; never crash on a cp1252 / cp932 console
+        try:
+            _s.reconfigure(errors="replace")
+        except Exception:  # noqa: BLE001
+            pass
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(errors="replace")
-    except Exception:  # noqa: BLE001
-        pass
 
     project = Path(args.project).resolve() if args.project else next(
         (p for p in (HERE.parent, Path.cwd()) if is_project(p)), None)
     if project and not is_project(project):
-        print(f"warning: {project} does not look like a tegaki-mv project (no engine/core/main.js)", file=sys.stderr)
+        print(f"warning: {project} does not look like a vocaloid-style-mv project (no engine/core/main.js)", file=sys.stderr)
     kit = load_kit_env(project if project and is_project(project) else None)
 
     R = Report()
@@ -421,7 +426,10 @@ def main() -> int:
                           "required_ok": not req_missing, "rows": R.rows}, ensure_ascii=False, indent=1))
         return 1 if req_missing else 0
 
-    print(f"vocaloid-style-mv-pipeline environment check  ({platform.system()} {platform.release()}, {platform.machine()})")
+    osname = f"{platform.system()} {platform.release()}"
+    if IS_WIN and sys.getwindowsversion().build >= 22000:   # platform.release() still says '10' on Windows 11
+        osname = f"Windows 11 (build {sys.getwindowsversion().build})"
+    print(f"vocaloid-style-mv-pipeline environment check  ({osname}, {platform.machine()})")
     for group in ("REQUIRED", "OPTIONAL", "PROJECT"):
         rows = [r for r in R.rows if r["group"] == group]
         if not rows:
@@ -448,7 +456,13 @@ def main() -> int:
     if todo:
         print("project to-do: " + "; ".join(f"{r['name']}: {r['hint']}" for r in todo))
     if not project:
-        print("(no project here: scaffold one with  python scripts/new_project.py <dir> --setup)")
+        np_rel = "<skill>/scripts/new_project.py"   # a project's tools/check_env.py has no new_project.py next to it
+        if (HERE / "new_project.py").is_file():
+            try:
+                np_rel = os.path.relpath(HERE / "new_project.py")
+            except ValueError:  # other drive on Windows
+                np_rel = str(HERE / "new_project.py")
+        print(f"(no project here: scaffold one with  python {np_rel} <dir> --setup)")
     return 1 if req_missing else 0
 
 

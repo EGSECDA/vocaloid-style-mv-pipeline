@@ -34,9 +34,10 @@
   const Z = window.Z, D = Z.draw, E = Z.ease;
   const W = 1920, H = 1080;
 
-  // ------------------------------------------------------------------ film identity (new_project.py --title / --credit set these)
+  // ------------------------------------------------------------------ film identity (new_project.py --title / --title-sub / --artist / --credit set these)
   Z.TITLE = '蛍火';                                   // HUD, vertical header, end card
-  Z.TITLE_SUB = 'HOTARUBI';                           // small Latin line under the title
+  Z.TITLE_SUB = 'HOTARUBI';                           // small Latin line under the title ('' = none)
+  Z.ARTIST = 'NikusonP';                              // artist name, used by the 9:16 header -- ask the artist
   Z.CREDIT = 'Music / Lyrics / Movie：NikusonP';      // title lockups, end card, vertical footer -- ask the artist
 
   // ------------------------------------------------------------------ colour script of the demo (one palette, kept everywhere)
@@ -142,7 +143,9 @@
     const secs = audio.sections || [];
     for (const s of secs) s.look = s.label;                // analysis/sections.json labels: intro verse pre-chorus chorus ...
     Z.sectionAt = t => { let s = secs[0] || null; for (const x of secs) if (x.start <= t + 1e-6) s = x; return s; };
-    Z.LOOK_DEFAULT = { boil: 1.0, bloom: 0.32, bloomThreshold: 0.72, grain: 0.05, vignette: 0.35, lutMix: 0 };
+    Z.LOOK_DEFAULT = { boil: 1.0, bloom: 0.32, bloomThreshold: 0.72, grain: 0.05, vignette: 0.35, lutMix: 0 };   // night / dusk film
+    // Daylight film: { boil: 1.0, bloom: 0.15, bloomThreshold: 0.93, grain: 0.04, vignette: 0.1, lutMix: 0 } -- the bloom
+    // bright-pass keys on max(R,G,B), so with a 0.72 threshold every sky / cloud pixel blooms and the frame turns milky.
     Z.LOOKS = {
       verse: { boil: 0.9, grain: 0.06 },
       'pre-chorus': { boil: 1.1, beatCA: 1.5 },
@@ -171,10 +174,10 @@
     lrc = lrc.replace(/^﻿/, '').replace(/^\[ti:.*\]\s*$/m, '');   // no [ti:]: JIZURA would add its own title card
     if (lrc.trim() && window.J) {
       JZ.setAudio({ duration: audio.duration, beats: audio.beats, energy: null, energyRate: 0 });
-      // Curate JIZURA's ~860 parts for the film's tone: keep emotional / calm / editorial / glitch parts and deny
-      // novelty objects, UI gimmicks, horror and 和 props, opaque plates and full-frame effects (our post pass owns
-      // flashes). These lists come from 残光 (examples/zanko/timeline.js); adapt them per film -- references/06 §5.
-      // Any change here (or to `seed`) re-rolls every cut of the plan: re-render the stills afterwards.
+      // Curate JIZURA's ~860 parts for the film's tone: deny novelty objects, UI gimmicks, horror and 和 props, opaque
+      // plates and full-frame effects (our post pass owns flashes). These lists come from 残光 (examples/zanko/timeline.js
+      // in the kit repo); adapt them per film -- references/06 §5.
+      // Any change here (or to `seed`, MOODS) re-rolls every cut of the plan: re-render the stills afterwards.
       const DENY = {
         layout: 'scatter ring wave labels pill knSeesaw knGearWords knTumble knPadGrid knPathRide zigzag arcTop gridCells bubble ticker searchBar chat notification ticket hanging wordCloud bounceLine elastic stickerBomb keycaps bubbles slotMachine flipBoard dotMatrix equalizer tape contents numbered poster ema ransom newspaper vinyl cassette bookSpine stampSheet calendar chochin routeMap stationSign noren tanzaku omikuji kakejiku shoji clapper warningLabel priceTag nameTag stickyNotes karuta cube flipCards accordion pile blocks balloons magnets tiles bulbs ledScroll billboard crowdBubbles crossword wordSearch puzzle dominoes burst fisheye origami zipper mosaicTiles stencil tyIndexTable tyStatCount typeSpecimen dictionary proofread magazine headlineDeck footnote ribbon flag pendulum knCollide knSlamStack halftoneBig tySquare tyRotBlock subtitleBar tile kaleido polaroid postcard letterPaper genkou panels splitScreen splitHalves wall cylinder cube',
         fx: 'panelWipe irisTrans doors blindsTrans splitSlide gridRepeat whiteFrame blackFrame strobe colorBars mirrorFlash starGlint focusLines speedLines halftone duotone kaleido bulge squash snapshot loopScroll crtOff tvStatic zoomStutter negativeRing edgeDetect hueShift posterize ditherBit rotateSnap invert bandInvert flash bloomFlash',
@@ -189,26 +192,31 @@
       DENY.decor += ' dataColumns timecodeBar rainStreaks';           // this film: no data tables / timecodes (the HUD has them), no rain
       DENY.layout += ' shadowPlay glitchGrid';                        // opaque plates: a grey floor (9:16) / beige glyph tiles
       DENY.trans += ' knStutterCut';                                  // blacks out the picture under the lyric in front mode
-      const MOODS = ['emotional', 'calm', 'editorial', 'glitch'];      // the mood filter: parts tagged with none of these are off
-      const REG = { layout: J.LAYOUTS, enter: J.ENTER, exit: J.EXIT, hold: J.HOLD, decor: J.DECOR, treat: J.TREAT, bg: J.BG, cam: J.CAM, fx: J.FXE, trans: J.TRANS };
+      // Optional mood filter on JIZURA's part tags (J.registry(group)[key].tags: glitch calm pop graphic editorial
+      // emotional ...). null = off: only the deny-lists curate (the demo and 残光 render this way). An array keeps only
+      // parts tagged with one of the moods (parts without tags -- the plain cut / none -- stay on), e.g.
+      // night / ballad film ['emotional', 'calm', 'editorial', 'glitch'], bright / upbeat film ['pop', 'emotional', 'graphic', 'calm'].
+      const MOODS = null;
       const enabled = {};
       for (const g of J.GROUP_KEYS) {
         enabled[g] = {}; const deny = new Set((DENY[g] || '').split(/\s+/).filter(Boolean));
         for (const k of J.order(g)) {
-          const d = (REG[g] || {})[k] || {}, moods = Array.isArray(d.moods) ? d.moods : null;
-          let ok = !deny.has(k) && !/^hr[A-Z]/.test(k);                   // hr* = horror set
-          if (ok && moods && !moods.some(m => MOODS.includes(m))) ok = false;
-          if (ok && moods && moods.includes('horror')) ok = false;
+          const d = J.registry(g)[k] || {}, tags = Array.isArray(d.tags) ? d.tags : null;
+          // horror set: hr* keys / set 'horror' (not the 'horror' tag: JIZURA also puts it on core parts like center, blur)
+          let ok = !deny.has(k) && !/^hr[A-Z]/.test(k) && d.set !== 'horror';
+          if (ok && MOODS && tags && !tags.some(m => MOODS.includes(m))) ok = false;
           if (k === 'none') ok = true;
           enabled[g][k] = ok;
         }
       }
       const common = {
         enabled, lyrics: lrc, fps: 30, res: 1080, aspect: '16:9', seed: 128, unify: true, typeset: true, extra: true, wa: false, horror: false,
-        colors: { accentOn: true, accent: FF.glow, ghostA: '#39C6E0', ghostB: '#9BD86A' }, schemes: 'dark',
+        colors: { accentOn: true, accent: FF.glow, ghostA: '#39C6E0', ghostB: '#9BD86A' }, schemes: 'dark',   // daylight film: schemes: 'light' (dark text) -- references/06 §4
         fx: { motion: 0.7, glitch: 0.4, chroma: 0.55, decor: 0.4, density: 0.5, texture: 0.5, flash: false, koma: 12, hud: 'off', bgSwitch: 0.3 } };
       // one plan per look; a shot picks one with `plan:` (default 'main'). 'cf' = centre-free: text in bands left /
       // right of the centre, for shots whose subject sits in the middle (a face, the first light, the 蛍 glyph).
+      // `mood` is a label only: J.plan ignores it (JIZURA's おまかせ randomiser is the only reader). The tone comes from
+      // `style`, `fx` (motion / glitch / chroma / decor / density), `enabled` (DENY, MOODS) and `schemes`.
       await JZ.addPlan('main', Object.assign({}, common, { style: 'gold', mood: 'emotional' }));
       await JZ.addPlan('cf', Object.assign({}, common, { style: 'gold', mood: 'emotional', centerFree: true }));
       await JZ.addPlan('noir', Object.assign({}, common, { style: 'noir', mood: 'glitch', fx: Object.assign({}, common.fx, { glitch: 0.65, chroma: 0.8 }) }));
@@ -228,7 +236,7 @@
     const shot = (id, t0, t1, scene, args, extra = {}) => { if (t1 > t0 + 1e-3) S.push(Object.assign({ id, t0, t1, scene, args }, extra)); };
 
     // ===== INTRO (bar 1): the title in the quiet
-    shot('s01', 0, B(2), 'typeCard', { lines: [Z.TITLE], size: 112, fam: 'minchoHeavy', weight: 700, ruleColor: FF.glow, sub: Z.TITLE_SUB + '  ·  a vocaloid-style-mv-pipeline demo', lead: 0.25 },
+    shot('s01', 0, B(2), 'typeCard', { lines: [Z.TITLE], size: 112, fam: 'minchoHeavy', weight: 700, ruleColor: FF.glow, sub: [Z.TITLE_SUB, 'a vocaloid-style-mv-pipeline demo'].filter(Boolean).join('  ·  '), lead: 0.25 },
       { lyric: 'none', hud: false, post: { boil: 0, bloom: 0.4, grain: 0.04 } });
 
     // ===== VERSE (bars 2-5)
@@ -302,7 +310,7 @@
       ctx.globalAlpha = 0.5 * fade; ctx.fillStyle = '#F4EFE6'; ctx.strokeStyle = '#F4EFE6'; ctx.lineWidth = 1;
       ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 4; ctx.textBaseline = 'top';
       D.font(ctx, 17, 'dot', 400); ctx.textAlign = 'left';
-      ctx.fillText(`${Z.TITLE} / ${Z.TITLE_SUB}`, 44, 36);
+      ctx.fillText(Z.TITLE_SUB ? `${Z.TITLE} / ${Z.TITLE_SUB}` : Z.TITLE, 44, 36);
       ctx.beginPath(); ctx.moveTo(44, 60); ctx.lineTo(44 + 150 + 40 * St.clock.pulse(t, 6), 60); ctx.stroke();
       if (sec) ctx.fillText(`SEC.${String(si).padStart(2, '0')}  ${SEC_NAME[sec.label] || String(sec.label).toUpperCase()}`, 44, 68);
       ctx.textAlign = 'right';
@@ -317,11 +325,13 @@
 
     // ---- 9:16 vertical build (engine/vertical.html + vertical.js): which shots keep the whole 16:9 composition
     // (pure typography / graphics), which vertical JIZURA plan each 16:9 plan maps to, header / footer text and when
-    // the header + credit footer are shown.
+    // the header + credit footer are shown (the footer is Z.CREDIT), the lyric schemes of the vertical plans and the
+    // [r, g, b] tint of the blurred surround (a daylight film: schemes: 'light', ambience: a light tint).
     Z.VERTICAL_CFG = {
       full: ['s01', 's04', 's06', 's10', 's11'],
       planMap: { main: 'v_main', cf: 'v_main', noir: 'v_noir', mono: 'v_mono' },
-      title: Z.TITLE, sub: Z.TITLE_SUB + ' — demo', artist: 'NikusonP', credits: [B(2), END],
+      title: Z.TITLE, sub: Z.TITLE_SUB, artist: Z.ARTIST, credits: [B(2), END],
+      schemes: 'dark', ambience: [10, 6, 18],
     };
   };
 })();

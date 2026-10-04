@@ -1,4 +1,4 @@
-/* zanko scenes: meta — scenes about other shots and about the edit itself.
+/* vocaloid-style-mv scenes: meta — scenes about other shots and about the edit itself.
  *
  *   panels  manga コマ割り split screen: slanted ink gutters, staggered 8th-note wipes, per-beat punch-ins,
  *           collapse into one full-frame panel with a rhythmic zoom                        (shots 20, 41)

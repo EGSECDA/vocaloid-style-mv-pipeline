@@ -155,7 +155,7 @@ mkdir -p ~/.claude/skills && cp -r skills/vocaloid-style-mv ~/.claude/skills/
 ```powershell
 # Windows PowerShell
 New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude\skills" | Out-Null
-Copy-Item -Recurse skills\vocaloid-style-mv "$env:USERPROFILE\.claude\skills\"
+Copy-Item -Recurse -Force skills\vocaloid-style-mv "$env:USERPROFILE\.claude\skills\"
 ```
 
 Then put your song and lyrics in a folder, open Claude Code there and ask:
@@ -169,13 +169,20 @@ master, the first stills and the first full render.
 **2b. Or use the template directly.**
 
 ```bash
-python skills/vocaloid-style-mv/scripts/new_project.py my-mv --song song.wav --lyrics lyrics.lrc --setup
-cd my-mv
+python skills/vocaloid-style-mv/scripts/new_project.py ../my-mv --song path/to/song.wav --lyrics path/to/lyrics.lrc --setup
+cd ../my-mv
 ```
 
-`--setup` installs Playwright and the Python packages, downloads the fonts, and clones and builds JIZURA. Open
-your agent in `my-mv` and ask for the MV as above. Agents without skill support can be pointed at
-`skills/vocaloid-style-mv/SKILL.md`.
+`--setup` installs Playwright and the Python packages, downloads the fonts, and clones and builds JIZURA.
+`--title`, `--title-sub`, `--artist` and `--credit` set the film's title, Latin subtitle, artist name and credit
+line in `engine/timeline.js`. Open your agent in `../my-mv` and ask for the MV as above. Agents without skill
+support can be pointed at `skills/vocaloid-style-mv/SKILL.md`.
+
+No song yet? Leave out `--song` / `--lyrics` and use a throwaway folder (the demo writes its own song and lyrics
+into the project). The new project then prints the commands for the procedural demo film 「蛍火」 (24 s; about
+30 s to render on an RTX 3080), a smoke test that the machine renders end to end. Expected result:
+[16:9 clip](docs/images/demo_16x9.mp4) · [contact sheet](docs/images/demo_sheet.jpg) ·
+[9:16 sheet](docs/images/demo_vertical_sheet.jpg).
 
 <details>
 <summary>The main commands the agent runs (all from the project root)</summary>
@@ -190,7 +197,8 @@ python tools/review_sheets.py render/mv.mp4 --step 1.8 --out render/review1
 
 The skill's [`references/01-workflow.md`](skills/vocaloid-style-mv/references/01-workflow.md) has the full
 sequence, acceptance criteria and time budget. A procedural demo song in `template/demo/` is a smoke test that
-proves a new machine renders end to end.
+proves a new machine renders end to end. Its film, 「蛍火」: [16:9 clip](docs/images/demo_16x9.mp4) ·
+[contact sheet](docs/images/demo_sheet.jpg) · [9:16 sheet](docs/images/demo_vertical_sheet.jpg).
 
 </details>
 
@@ -199,7 +207,7 @@ proves a new machine renders end to end.
 | | what | notes |
 |---|---|---|
 | **required** | Node.js 20+ | Playwright, the render and stills scripts |
-| **required** | Python 3.10+ | `librosa`, `numpy`, `scipy`, `soundfile`, `pillow` (setup installs them) |
+| **required** | Python 3.10+ | `librosa`, `numpy`, `scipy`, `soundfile`, `pillow`, `matplotlib` (setup installs them) |
 | **required** | ffmpeg + ffprobe on `PATH` | encoding, audio mux, frame extraction |
 | **required** | Microsoft Edge or Google Chrome | headless WebGL2 through Playwright (`msedge` / `chrome` channel) |
 | **required** | git | setup clones JIZURA |
@@ -211,6 +219,10 @@ proves a new machine renders end to end.
 Windows 11 (PowerShell 5.1 or Git Bash) is the tested platform. macOS and Linux are supported through the
 cross-platform scripts but have seen less testing. Reference numbers from 「残光」 on an RTX 3080: audio analysis
 under 1 min; one generated image 30–110 s (8–10 in parallel); Blender ≈0.7 s/frame; full 1080p render ≈4 min.
+
+Setup clones JIZURA at the tested commit `fc16bfe`; the template's deny-lists and scheme indices are checked
+against it. To use another version, set the environment variable `JIZURA_REF` to a branch, tag or full commit
+sha for setup (e.g. `main` to follow upstream). `JIZURA_DIR` points setup at an existing local clone and takes precedence.
 
 ## Repository layout
 
@@ -253,6 +265,8 @@ The kit aims for **another film of the same quality**, not a 残光 clone. A few
   never mentions them. The skill's creative-direction reference has a *variation matrix* (world, time arc,
   palette, shape, material, line style, character, typography, 3D role, transitions, ending). If a new plan
   matches 残光 on more than three axes, the agent pushes further.
+- **Night or daylight.** The template's defaults are tuned for 残光's dusk and night; for a bright, daytime film
+  the agent re-tunes the lyric colours, the post look and the palettes before the first still.
 - **The character is original.** Every pose is generated from one master reference. Existing characters are
   never imitated.
 - **Look at every result.** Stills and contact sheets get reviewed like an art director would, then fixed and
@@ -261,7 +275,7 @@ The kit aims for **another film of the same quality**, not a 残光 clone. A few
 ## Credits
 
 - **Kit, 「残光」 song, lyrics and movie:** NikusonP. *Music / Lyrics / Movie：NikusonP*
-- **[JIZURA 字面](https://github.com/852wa/JIZURA)** by 852wa: lyric-motion engine, MIT (fetched at setup, not vendored)
+- **[JIZURA 字面](https://github.com/852wa/JIZURA)** by 852wa: lyric-motion engine, MIT, © 2026 hakoniwa (fetched at setup, not vendored)
 - **Fonts:** Google Fonts families (Noto Sans/Serif JP & SC, Zen Old Mincho, Zen Kaku Gothic New, Shippori
   Mincho B1, Kaisei Tokumin, Klee One, Yuji Syuku, DotGothic16, Dela Gothic One, Rampart One, Reggae One, M PLUS
   Rounded 1c), SIL OFL 1.1

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Palette system (shipped with the 残光 / Zankō dusk palettes P1-P5 as a starting point) — writes machine-readable
-palettes, 256x1 gradient-map LUT PNGs and a visual contact sheet that applies every palette to a procedural dusk scene.
+palettes, 256x1 gradient-map LUT PNGs and a visual contact sheet that applies every palette to a procedural dusk scene
+(or, with --plate, to one of your own backgrounds: judge daylight palettes on a daylight plate).
 Edit PALETTES below for a new song's colour script, then re-run.
 
 Usage:
-  python tools/style_palette_sheet.py [--sheet docs/style_palettes.png]
+  python tools/style_palette_sheet.py [--sheet docs/style_palettes.png] [--plate assets/bg/<plate>.png]
 
 Outputs (under the project root):
   assets/style/palettes.json          (roles, gradient stops, duotone pairs, contrast)
@@ -16,7 +17,7 @@ Author: NikusonP -- vocaloid-style-mv-pipeline, MIT licence.
 """
 import argparse, json, os, sys
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import kit_env  # noqa: E402
@@ -210,14 +211,29 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--sheet", default=os.path.join("docs", "style_palettes.png"),
                     help="contact sheet path, relative to the project root (default docs/style_palettes.png)")
+    ap.add_argument("--plate", default=None,
+                    help="preview image (greyscale, centre-cropped to 640x360) instead of the built-in dusk scene: "
+                         "use one of your own backgrounds")
+    for _s in (sys.stdout, sys.stderr):  # help texts contain 残光 / ō / ：; never crash on a cp1252 / cp932 console
+        try:
+            _s.reconfigure(errors="replace")
+        except Exception:  # noqa: BLE001
+            pass
     args = ap.parse_args()
     sheet_path = str(kit_env.resolve(args.sheet))
+    plate = kit_env.resolve(args.plate) if args.plate else None
+    if plate and not plate.is_file():
+        sys.exit(f"--plate: {plate} not found")
     os.makedirs(OUT_LUT, exist_ok=True)
     os.makedirs(os.path.dirname(sheet_path), exist_ok=True)
 
-    scene = dusk_scene()
-    H, W = scene.shape
+    scene = dusk_scene()   # always refreshed: tools/preview_style_fx.mjs renders onto it
     Image.fromarray((scene * 255).round().astype(np.uint8), 'L').save(os.path.join(OUT_STYLE, "dusk_scene_gray.png"))
+    if plate:   # Rec.601 luma of the plate, same 640x360 frame as the dusk scene
+        grey = ImageOps.fit(Image.open(plate).convert("L"), (640, 360), Image.LANCZOS)
+        scene = np.asarray(grey).astype(np.float64) / 255.0
+        print("plate", kit_env.rel(plate))
+    H, W = scene.shape
     font = None
     for name in SHEET_FONTS:
         fp = kit_env.find_font(name)

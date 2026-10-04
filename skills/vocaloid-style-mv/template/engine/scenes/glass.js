@@ -1,4 +1,4 @@
-/* zanko scenes: glass — the glass heart and the shattering sky (「砕けた心を / 拾い上げて」).
+/* vocaloid-style-mv scenes: glass — the glass heart and the shattering sky (「砕けた心を / 拾い上げて」).
  *
  *   heart       {mode:'shatter'|'gather'|'burn'|'sun', heart, char, bg, ...}   shots 18 / 19 / 40 / 53 / 54
  *   skyShatter  {bg, char, night, ...}                                          shot 39

@@ -16,12 +16,14 @@ Structure (bar = 1.875 s; the times are what tools/analyze_audio.py should find)
 
 The lyric stand-in lines are in demo/lyrics_demo.lrc (timed to the lead phrases).
 
-Usage:  python demo/make_demo_song.py [--out audio/song.wav] [--seed 128]
+Usage:  python demo/make_demo_song.py [--out audio/song.wav] [--seed 128] [--force]
+It never replaces a different existing WAV (your song) unless --force; re-running it over the demo song is harmless.
 Author: NikusonP -- vocaloid-style-mv-pipeline, MIT licence.
 """
 from __future__ import annotations
 
 import argparse
+import io
 import os
 import sys
 
@@ -356,20 +358,46 @@ def build(seed):
     return mix.astype(np.float32)
 
 
+def is_demo_song(sf, path, seed) -> bool:
+    """True when `path` already holds this demo song (same format and samples): writing it again changes nothing."""
+    try:
+        i = sf.info(path)
+    except Exception:  # noqa: BLE001 - not a sound file libsndfile can read: certainly not ours
+        return False
+    if (i.samplerate, i.channels, i.frames, i.subtype) != (SR, 2, int(DUR * SR), 'PCM_16'):
+        return False   # e.g. the user's song: decided without synthesizing anything
+    buf = io.BytesIO()
+    sf.write(buf, build(seed), SR, subtype='PCM_16', format='WAV')
+    buf.seek(0)
+    return np.array_equal(sf.read(path, dtype='int16')[0], sf.read(buf, dtype='int16')[0])
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--out', default=os.path.join(ROOT, 'audio', 'song.wav'), help='output WAV (default audio/song.wav)')
     ap.add_argument('--seed', type=int, default=128, help='noise seed (default 128)')
+    ap.add_argument('--force', action='store_true', help='overwrite an existing output WAV that is not this demo song')
+    for _s in (sys.stdout, sys.stderr):  # help texts contain 残光 / ō / ：; never crash on a cp1252 / cp932 console
+        try:
+            _s.reconfigure(errors='replace')
+        except Exception:  # noqa: BLE001
+            pass
     args = ap.parse_args()
     try:
         import soundfile as sf
     except ImportError:
         sys.exit('soundfile is missing: python -m pip install -r requirements.txt')
     out = os.path.abspath(args.out)
-    os.makedirs(os.path.dirname(out), exist_ok=True)
-    mix = build(args.seed)
-    sf.write(out, mix, SR, subtype='PCM_16')
-    print(f'wrote {out}  ({len(mix) / SR:.2f} s, {SR} Hz stereo, {BPM:g} BPM, dead stop at {STOP_T:.2f} s)')
+    if os.path.exists(out) and not args.force:
+        if not is_demo_song(sf, out, args.seed):
+            sys.exit(f'{out} already exists and is not the demo song (your song?) -- not overwritten.\n'
+                     'Run the demo in a fresh project without a song, pass --out elsewhere, or --force to replace it.')
+        print(f'{out} already holds the demo song (unchanged)')
+    else:
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        mix = build(args.seed)
+        sf.write(out, mix, SR, subtype='PCM_16')
+        print(f'wrote {out}  ({len(mix) / SR:.2f} s, {SR} Hz stereo, {BPM:g} BPM, dead stop at {STOP_T:.2f} s)')
     print('next: copy demo/lyrics_demo.lrc to analysis/lyrics_mv.lrc, then python tools/analyze_audio.py')
 
 

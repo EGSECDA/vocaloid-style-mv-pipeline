@@ -1,4 +1,4 @@
-/* zanko scenes: typo — typographic set pieces.
+/* vocaloid-style-mv scenes: typo — typographic set pieces.
  *   kanjiSlam : chorus-downbeat monument kanji slammed per beat behind a character (shots 16, 38, 52, 56)
  *   typeCard  : 'quiet' single mincho line on black (shot 29) · 'flicker' glitching 救って per beat → white (shot 37)
  *   tunnel    : one-take push through rings of lyric text toward a point of light that blooms into dawn (shot 61)
@@ -241,7 +241,7 @@
   }
 
   // ===================================================================================== kanjiSlam
-  // Variant presets. Every field can be overridden through args.
+  // Variant presets. Every field can be overridden through args. sky: 'sunset' | 'night' | 'day' (+ skyGrad, see drawSky).
   const SLAM = {
     default: {
       char: 'assets/char/profile_sing.png', charX: 1330, charY: 1100, charH: 1000, face: [0.745, 0.235], bg: 'assets/bg/bg_sky.png',
@@ -356,10 +356,13 @@
     ctx.restore();
   }
 
-  // sky backdrop per variant
+  // sky backdrop per variant. cfg.sky: 'sunset' (default: dusk grade + a low sun) | 'night' (blue grade + stars) |
+  // 'day' (the plate as painted; without a bg image a daylight gradient, cfg.skyGrad = vgrad stops). fire: true wins over both.
   function drawSky(ctx, S, cfg, view) {
     const img = cfg.bg ? Z.imgSync(cfg.bg) : null;
-    if (img) D.cover(ctx, img, view); else D.vgrad(ctx, [[0, '#1a0e2a'], [0.6, '#5a1a3a'], [1, '#e0603a']]);
+    if (img) D.cover(ctx, img, view);
+    else if (cfg.sky === 'day') D.vgrad(ctx, cfg.skyGrad || [[0, '#2E9BEA'], [0.6, '#86CFFF'], [1, '#EAF8FF']]);
+    else D.vgrad(ctx, [[0, '#1a0e2a'], [0.6, '#5a1a3a'], [1, '#e0603a']]);
     if (cfg.sky === 'night') {
       D.fill(ctx, '#0E2346', 1, 'color');
       D.vgrad(ctx, [[0, 'rgba(3,6,16,0.92)'], [0.55, 'rgba(8,16,40,0.55)'], [1, 'rgba(40,20,50,0.25)']], 1, 'multiply');
@@ -374,6 +377,8 @@
     } else if (cfg.fire) {
       D.vgrad(ctx, [[0, 'rgba(10,3,8,0.9)'], [0.5, 'rgba(40,6,12,0.6)'], [1, 'rgba(90,20,10,0.2)']], 1, 'multiply');
       D.vgrad(ctx, [[0.45, 'rgba(200,55,58,0)'], [1, 'rgba(240,90,40,0.5)']], 1, 'screen');
+    } else if (cfg.sky === 'day') {
+      // daylight: keep the plate as painted (no dusk multiply, no low sun behind her shoulder)
     } else {
       D.vgrad(ctx, [[0, 'rgba(20,11,30,0.6)'], [0.45, 'rgba(58,23,69,0.2)'], [1, 'rgba(0,0,0,0)']], 1, 'multiply');
       D.glow(ctx, W * 0.74, H * 0.92, 760, '#FFB070', 0.32);             // the low sun behind her shoulder
@@ -550,7 +555,11 @@
   }
 
   // ===================================================================================== typeCard
+  // args: lines, mode 'quiet' | 'flicker', size, fam, weight, color (text; default paper white, or ink on a light paper),
+  //   paper (background colour; default near-black -- flicker's type is additive light, keep its paper dark),
+  //   ruleColor (the hairline; default vermilion), rule, vertical, sub, x / y, lead / stagger / fade / gap
   const cardCfg = a => Object.assign({ lines: ['もう何も言わない'], mode: 'quiet', size: null, fam: null, color: null, vertical: false, rule: true, sub: null, weight: null }, a);
+  const lightPaper = a => { if (!a.paper) return false; const [r, g, b] = hexRGB(a.paper); return 0.2126 * r + 0.7152 * g + 0.0722 * b > 140; };
 
   Z.scene('typeCard', {
     init: loadFonts,
@@ -572,8 +581,8 @@
 
   // ---- quiet: one small line, character-by-character, a vermilion hairline; silence
   function drawQuiet(ctx, S, a) {
-    D.fill(ctx, '#060408');
-    const lt = S.lt, size = a.size || 42, fam = a.fam || 'mincho', weight = a.weight || 500, col = hexRGB(a.color || C.paper);
+    D.fill(ctx, a.paper || '#060408');
+    const lt = S.lt, size = a.size || 42, fam = a.fam || 'mincho', weight = a.weight || 500, col = hexRGB(a.color || (lightPaper(a) ? C.ink : C.paper));
     const chars = [...(a.lines[0] || '')], vert = !!a.vertical;
     const lead = a.lead ?? 0.1, stag = a.stagger ?? Math.min(0.12, 1.0 / Math.max(1, chars.length)), fade = a.fade ?? 0.6;
     // optical sizes: kanji 1, kana .92, the particle も .86 ; constant gap between ink boxes
@@ -630,7 +639,7 @@
     const n = beats.length, T1 = S.shot.t1, lastB = beats[n - 1];
     const toWhite = Math.pow(Z.clamp((t - lastB) / Math.max(0.2, T1 - lastB)), 2.1);   // luminance ramp, not a flash
     const text = a.lines[0] || '救って', fam = a.fam || 'dela', weight = a.weight || 400;
-    D.fill(ctx, '#040305');
+    D.fill(ctx, a.paper || '#040305');
     // per-beat typographic layouts (the last four beats; earlier ones reuse the first)
     const pi = Math.min(3, Math.max(0, k - (n - 4)));
     const LAY = [
@@ -968,12 +977,13 @@
     const P = { ca: 1.2 + 6 * hit, bloom: 0.28 + 0.3 * hit, bloomThreshold: 0.82, zoomBlur: 0.06 * Math.exp(-u * 26), zoomCenter: [0.33, 0.5], vignette: 0.25, boil: 1.0 };
     if (cfg.fire) Object.assign(P, { lutA: 'ember', lutMix: 0.18, bloom: 0.42 + 0.3 * hit, bloomThreshold: 0.7, contrast: 1.05 });
     else if (cfg.sky === 'night') Object.assign(P, { lutA: 'night', lutMix: 0.1, bloom: 0.35 + 0.3 * hit, bloomThreshold: 0.75 });
+    else if (cfg.sky === 'day') Object.assign(P, { lutMix: 0, bloom: 0.1 + 0.15 * hit, bloomThreshold: 0.93, vignette: 0.1 });   // no dusk palette, no milky sky
     else Object.assign(P, { lutA: 'P1', lutMix: 0.1 });
     return P;
   };
   const cardPost = S => {
     const a = cardCfg(S.args);
-    if (a.mode !== 'flicker') return { boil: 0.35, bloom: 0.2, vignette: 0.4, ca: 0 };
+    if (a.mode !== 'flicker') return lightPaper(a) ? { boil: 0.35, bloom: 0.05, bloomThreshold: 0.95, vignette: 0.1, ca: 0 } : { boil: 0.35, bloom: 0.2, vignette: 0.4, ca: 0 };
     const beats = shotBeats(S), k = beatIndex(beats, S.t), u = S.t - beats[k];
     return { boil: 0.8, glitch: 0.3 * Math.exp(-u * 8) + 0.04, ca: 2.5 + 4 * Math.exp(-u * 10), bloom: 0.5, bloomThreshold: 0.6, vignette: 0.35 };
   };

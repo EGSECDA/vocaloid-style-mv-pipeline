@@ -7,7 +7,7 @@ Whisper pass), SONG, START_OVERRIDE / MORA_OVERRIDE (empty until you verified an
 Translations / hand-checked romaji live in transcribe_translation.py.
 
 Each LINES entry: (text, reading_hiragana, section, approx_start_from_whisper, confidence, alternatives, note)
-Text was reconciled from 9 faster-whisper large-v3 passes (see examples/zanko/LYRICS_NOTES.md) and
+Text was reconciled from 9 faster-whisper large-v3 passes (see examples/zanko/LYRICS_NOTES.md in the kit repo) and
 forced-decoding scores (tools/transcribe_score.py).
 
   python tools/transcribe_lines.py      print the table (index, start, section, text, reading)

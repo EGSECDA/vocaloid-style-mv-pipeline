@@ -1,4 +1,4 @@
-// Font preloader for the zanko engine. Usage (module or classic script):
+// Font preloader for the vocaloid-style-mv engine. Usage (module or classic script):
 //   <link rel="stylesheet" href="../fonts/fonts.css">
 //   <script src="../fonts/fonts.js"></script>
 //   await ZankoFonts.loadAll();            // or ZankoFonts.load(['Zen Old Mincho 400', ...])

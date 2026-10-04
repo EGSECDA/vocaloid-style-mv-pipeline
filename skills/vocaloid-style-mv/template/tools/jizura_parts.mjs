@@ -20,9 +20,9 @@ await page.goto(`${origin}/project/jizura/app/engine.html`);
 await page.waitForFunction(() => window.JZ_READY === true);
 const parts = await page.evaluate(() => {
   const out = {};
-  const reg = { layout: J.LAYOUTS, enter: J.ENTER, exit: J.EXIT, hold: J.HOLD, decor: J.DECOR, treat: J.TREAT, bg: J.BG, cam: J.CAM, fx: J.FXE, trans: J.TRANS };
+  // J.registry(g) = J.LAYOUTS, J.ENTER, ... J.CAMERA (cam), J.FXE (fx), J.TRANS; `moods` below holds the part's `tags`
   for (const g of J.GROUP_KEYS) {
-    const R = reg[g] || {};
+    const R = J.registry(g) || {};
     out[g] = J.order(g).map(k => { const d = R[k] || {}; return { k, name: d.name || d.label || '', moods: d.moods || d.mood || d.tags || null, set: d.set || (d.extra ? 'extra' : '') || '', wa: !!d.wa, horror: !!d.horror }; });
   }
   return { groups: J.GROUP_KEYS, out, moods: J.MOODS ? Object.keys(J.MOODS) : null };

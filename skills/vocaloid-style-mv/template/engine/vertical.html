@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>tegaki-mv engine — vertical 9:16</title>
+<title>vocaloid-style-mv engine — vertical 9:16</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>html,body{margin:0;background:#000;overflow:hidden} canvas#out{display:none} canvas#vout{display:block;height:100vh;width:auto;margin:0 auto}</style>
@@ -29,7 +29,10 @@
 <script src="scenes/night.js"></script>
 <script src="scenes/memory.js"></script>
 <script src="scenes/meta.js"></script>
-<script src="timeline.js"></script>
+<script>
+  // ?tl=tests/foo.js loads an alternate timeline (scene tests); default: timeline.js
+  (() => { const tl = new URLSearchParams(location.search).get('tl') || 'timeline.js'; document.write('<script src="' + tl.replace(/[^\w./-]/g, '') + '"><\/script>'); })();
+</script>
 <script src="core/main.js"></script>
 <script src="vertical.js"></script>
 </body>

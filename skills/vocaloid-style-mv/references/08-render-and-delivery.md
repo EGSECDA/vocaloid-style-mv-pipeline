@@ -17,7 +17,7 @@ All commands run from the project root. Environment knobs (read by `tools/kit_en
 | `render/<name>_preview720.mp4`, `<name>_vertical_preview720.mp4` | 1280×720 / 720×1280, CRF 25 `medium`, AAC 160 k | ≈ 70 / 50 MB |
 | `render/<name>_stats.json` | render statistics (per-worker ms per frame, fps, GPU) | |
 
-Credits on screen (title lockup, outro, end card, vertical footer) and in the README: ask the user for the exact credit line (残光: 「Music / Lyrics / Movie：NikusonP」, set once as `Z.CREDIT` in the timeline).
+Credits on screen (title lockup, outro, end card, vertical footer) and in the README: ask the user for the exact credit line (残光: 「Music / Lyrics / Movie：NikusonP」, set once as `Z.CREDIT` in the timeline) and the artist name for the 9:16 header (`Z.ARTIST`); `new_project.py --credit … --artist …` writes both.
 
 ## 2. `tools/render_frames.mjs` (the renderer)
 
@@ -85,26 +85,26 @@ ffprobe -v error -show_entries stream=codec_name,width,height,r_frame_rate,bit_r
 ## 5. Vertical 9:16 re-layout (`engine/vertical.html` + `engine/vertical.js`)
 
 Not a crop: the 16:9 engine renders each frame **without lyrics** (`Z.NO_LYRICS = Z.VERTICAL = true`, HUD off) into the hidden `#out`, then `vertical.js` composes a 1080×1920 frame on `#vout`:
-1. **Ambience**: the central 607×1080 of the frame drawn into a 120×214 canvas, scaled to full bleed with `blur(10px) saturate(1.25)`, darkened by a vertical gradient (0.78 → 0.35 → 0.8 alpha) — colour without detail.
+1. **Ambience**: the central 607×1080 of the frame drawn into a 120×214 canvas, scaled to full bleed with `blur(10px) saturate(1.25)`, tinted by a vertical gradient of `Z.VERTICAL_CFG.ambience` (`[r, g, b]`, default `[10, 6, 18]` = near-black violet; alpha 0.78 → 0.35 → 0.8) — colour without detail. A daylight film wants a light tint (e.g. `[236, 244, 250]`).
 2. **Picture band**: a **6:5 centre crop** of the 16:9 frame (`sx 312, sw 1296, sh 1080`) at full width, `y 510…1410` (1080×900), with a soft shadow, hairline frame rules and tick marks. Most character shots are composed for the centre, so 6:5 keeps the subject; check every shot anyway.
-3. **FULL-composition shots** (purely graphic: ember intro, title, outro lockup, end card — 残光 `s01 s02 s03 s64 s65 s66`): the whole 16:9 frame at full width (1080×608, `y 656`), ambience extra-dimmed so the typography doesn't echo. Edit the `FULL` set for your film.
-4. **Lyrics re-typeset natively at 9:16**: at boot, every 16:9 JIZURA plan is cloned with `{aspect: '9:16', res: 1080, centerFree: true, centerDir: 'tb'}` (中央を空ける with top/bottom bands around the picture) — `PLAN_MAP = {main: 'v_main', cf: 'v_main', noir: 'v_noir', mono: 'v_mono'}`; shots with `lyric: 'none'` stay without lyrics (their typography is in the picture). JIZURA re-plans the cuts for the tall frame, so the lyric layout is native, not a scaled overlay.
-5. **Header / footer**: small title (Zen Old Mincho), romanised subtitle, artist and timecode at the top, credit line (`Z.CREDIT`) and a progress hairline at the bottom, faded in/out around the film's title and end card (残光: 17.6 s → 223.54 s).
+3. **FULL-composition shots** (purely graphic: ember intro, title, outro lockup, end card — 残光 `s01 s02 s03 s64 s65 s66`): the whole 16:9 frame at full width (1080×608, `y 656`), ambience covered by a second, denser layer of the tint so the typography doesn't echo. List them in `Z.VERTICAL_CFG.full` in your timeline.
+4. **Lyrics re-typeset natively at 9:16**: at boot, every 16:9 JIZURA plan is cloned with `{aspect: '9:16', res: 1080, centerFree: true, centerDir: 'tb'}` (中央を空ける with top/bottom bands around the picture) and the scheme set `Z.VERTICAL_CFG.schemes` (default `'dark'`; `'light'` for dark text on a light ambience — 06 §4), mapped by `Z.VERTICAL_CFG.planMap` (default `{main: 'v_main', cf: 'v_main', noir: 'v_noir', mono: 'v_mono'}`); shots with `lyric: 'none'` stay without lyrics (their typography is in the picture). JIZURA re-plans the cuts for the tall frame, so the lyric layout is native, not a scaled overlay.
+5. **Header / footer**: small title, romanised subtitle, artist (`Z.VERTICAL_CFG.title` / `sub` / `artist` — the template passes `Z.TITLE`, `Z.TITLE_SUB`, `Z.ARTIST`) and timecode at the top, credit line (`Z.CREDIT`; nothing when it is empty) and a progress hairline at the bottom, faded in/out between `Z.VERTICAL_CFG.credits: [t0, t1]`, around the film's title and end card (残光: 17.6 s → 223.54 s).
 
 Render and check:
 ```bash
 node tools/stills.mjs --url engine/vertical.html --canvas vout --times 20,63,131,184,212 --out render/stills/v --sheet v
 node tools/render_final.mjs --name mv_vertical --url engine/vertical.html --selector canvas#vout --width 1080 --height 1920
 ```
-To adapt: `FULL` ids, `PLAN_MAP` (one vertical plan per 16:9 plan), header strings, fade times, crop if your shots are composed off-centre (per-shot crop offsets are an easy extension: a map `id → sx`).
+To adapt: set `Z.VERTICAL_CFG = { full, planMap, title, sub, artist, credits: [t0, t1], schemes, ambience }` in `engine/timeline.js` (inside `Z.setup`; fields you leave out fall back to the 残光 values in `vertical.js`). Edit `vertical.js` only to change the crop if your shots are composed off-centre (per-shot crop offsets are an easy extension: a map `id → sx`). `engine/vertical.html?tl=tests/<file>.js` loads a test timeline, like `index.html`.
 
 ## 6. Review tooling
 
 | tool | use |
 |---|---|
-| `node tools/stills.mjs --times 1,5.5,12 [--url …] [--out render/stills] [--sheet name] [--canvas out]` / `--range a:b:step` | PNG per time + a 4-column contact sheet `<out>/<sheet>.jpg` (480×270 tiles, timestamps). Prints ms per frame and every page error/warning. 0.1–0.45 s per still. Use shot midpoints for an animatic, 3–4 times per new scene. `--canvas vout` for the vertical page. |
-| `python tools/review_sheets.py render/mv.mp4 --step 1.5 --out render/review1 [--start --end --cols 5]` | contact sheets of a rendered video: one 384×216 thumbnail every `step` s, `cols×cols` per sheet, `m:ss.xx` labels — 残光: 7 sheets per pass at 1.5 s. Read every sheet. |
-| portrait sheets (16:9 thumbnails would squash 9:16) | `ffmpeg -v error -i render/mv_vertical.mp4 -vf "fps=1/3,scale=144:256,tile=16x3:padding=4:color=black" -q:v 3 render/review_v/vsheet_%02d.jpg` — 48 frames per sheet, 2 sheets for 3:46 |
+| `node tools/stills.mjs --times 1,5.5,12 [--url …] [--out render/stills] [--sheet name] [--canvas out]` / `--range a:b:step` | PNG per time + a 4-column contact sheet `<out>/<sheet>.jpg` (480×270 tiles, timestamps; 9:16 frames: 6 columns of 225×400). Prints ms per frame and every page error/warning. 0.1–0.45 s per still. Use shot midpoints for an animatic, 3–4 times per new scene. `--canvas vout` for the vertical page. |
+| `python tools/review_sheets.py render/mv.mp4 --step 1.5 --out render/review1 [--start --end --cols 5]` | contact sheets of a rendered video: one 384×216 thumbnail (216×384 for a 9:16 video) every `step` s, `cols×cols` per sheet, `m:ss.xx` labels — 残光: 7 sheets per pass at 1.5 s. Read every sheet. |
+| `python tools/review_sheets.py render/mv_vertical.mp4 --step 1.5 --out render/review_v` | portrait videos get 216×384 thumbnails automatically (or a denser strip: `ffmpeg -v error -i render/mv_vertical.mp4 -vf "fps=1/3,scale=144:256,tile=16x3:padding=4:color=black" -q:v 3 render/review_v/vsheet_%02d.jpg` — 48 frames per sheet, 2 sheets for 3:46) |
 | `node tools/jz_cuts_at.mjs 196.8,203.5 main` | which JIZURA parts a lyric frame uses (06-jizura) |
 | `ffmpeg -ss 62.4 -i render/mv.mp4 -frames:v 12 render/check/f_%02d.png` | a burst of consecutive frames to check motion, seams, flashes |
 
@@ -132,7 +132,6 @@ It opens gigafile.nu headless, sets the retention (`--days`, the site offers fix
 - Seams between workers: any non-determinism shows as a jump exactly at the segment boundaries — check them on every full render (05 §2).
 - Software rendering, a busy GPU (Blender, other agents, a game) or a sleeping laptop multiply render time; the GPU should be idle during finals.
 - Wrong selector for the vertical page (`canvas#vout`) → you record the hidden 16:9 canvas, rescaled.
-- `review_sheets.py` on a 9:16 video squashes it — use the portrait `tile` command.
 - Share encodes without colour tags look slightly different in some players; keep `setparams` (§4).
 - Don't upload anything without the owner's explicit OK (§7).
 

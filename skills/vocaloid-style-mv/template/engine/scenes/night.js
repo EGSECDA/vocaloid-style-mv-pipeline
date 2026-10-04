@@ -1,4 +1,4 @@
-/* zanko scenes: night — rain, the wet floor and the passing train.
+/* vocaloid-style-mv scenes: night — rain, the wet floor and the passing train.
  *   wetFloor  shots 24 / 25   {mode:'fall'|'count', bg, words}
  *             fall : glowing mincho words fall like raindrops (one landing per beat) into the wet street,
  *                    sink through their own reflections, splash, ripple in perspective and leave a warm glow.

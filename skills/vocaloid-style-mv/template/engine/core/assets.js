@@ -1,4 +1,4 @@
-/* zanko engine — asset loading.
+/* vocaloid-style-mv engine — asset loading.
  *   await Z.img('assets/bg/bg_crossing.png')           cached HTMLImageElement / ImageBitmap (decoded)
  *   await Z.preload([...urls])                         before frame 0
  *   await Z.seqFrame('blender/renders/street/f_####.jpg', n)   one frame of an image sequence (LRU, decoded on demand)

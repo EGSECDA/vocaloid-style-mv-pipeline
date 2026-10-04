@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  One-time (and repeatable) setup of a tegaki-mv project on Windows: Node + Python deps, fonts, JIZURA, checks.
+  One-time (and repeatable) setup of a vocaloid-style-mv project on Windows: Node + Python deps, fonts, JIZURA, checks.
 
 .DESCRIPTION
   Run from anywhere; it works on the folder this script is in (the project root). Every step is idempotent:
@@ -10,14 +10,15 @@
     2. browser                           uses Edge / Chrome; downloads Playwright's Chromium only if the channel is missing
     3. pip install -r requirements.txt   (+ the optional lyric-transcription set with -Lyrics)
     4. python tools/fetch_fonts.py       Google Fonts TTFs (OFL) -> engine/fonts  (~260 MB, skipped when present)
-    5. git clone --depth 1 https://github.com/852wa/JIZURA vendor/JIZURA   (skipped when present / JIZURA_DIR set)
+    5. JIZURA -> vendor/JIZURA: shallow fetch of the tested commit fc16bfe (skipped when present / JIZURA_DIR set)
     6. node tools/build_jizura_bundle.mjs   -> jizura/app/jizura_engine.js
     7. python tools/check_env.py --webgl    REQUIRED vs OPTIONAL report (ffmpeg, NVENC, GPU/WebGL, Blender, Codex ...)
 
   Usage:
     powershell -ExecutionPolicy Bypass -File setup.ps1 [-Lyrics] [-FontsFrom DIR] [-SkipPip] [-SkipFonts] [-SkipCheck] [-NoWebGL]
 
-  Environment: PYTHON (interpreter), BROWSER_CHANNEL (msedge | chrome | chromium), JIZURA_DIR (existing clone).
+  Environment: PYTHON (interpreter), BROWSER_CHANNEL (msedge | chrome | chromium), JIZURA_DIR (existing clone; wins),
+               JIZURA_REF (JIZURA branch / tag / full commit sha to fetch instead of the tested one, e.g. main).
 
   Author: NikusonP -- vocaloid-style-mv-pipeline, MIT licence.
 #>
@@ -59,7 +60,7 @@ function Find-Python {
 
 Push-Location -LiteralPath $Root
 try {
-  Write-Step "tegaki-mv setup in $Root"
+  Write-Step "vocaloid-style-mv setup in $Root"
   foreach ($tool in 'node', 'npm') {
     if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) { throw "$tool not found: install Node.js 20+ (https://nodejs.org) and re-run" }
   }
@@ -137,13 +138,31 @@ try {
   }
 
   # ------------------------------------------------------------------------------------------ 5-6. JIZURA
-  Write-Step 'JIZURA (lyric-motion engine, MIT, (c) 852wa)'
-  $jz = if ($env:JIZURA_DIR) { $env:JIZURA_DIR } elseif ($env:JIZURA_REF) { $env:JIZURA_REF } else { Join-Path $Root 'vendor\JIZURA' }
-  if (Test-Path -LiteralPath (Join-Path $jz 'src')) { Write-Ok "clone present: $jz" }
-  else {
+  Write-Step 'JIZURA (lyric-motion engine, MIT, (c) 2026 hakoniwa (github.com/852wa))'
+  # the kit is tested against this commit (deny-lists, part tags, scheme indices); keep in sync with setup.sh,
+  # package.json (jizura:clone) and scripts/check_env.py. $env:JIZURA_REF = branch / tag / full sha overrides it.
+  $JzPin = 'fc16bfe43ea4a6c25a21f1caf04d17326de14f00'
+  $jzRef = if ($env:JIZURA_REF) { $env:JIZURA_REF } else { $JzPin }
+  $jz = if ($env:JIZURA_DIR) { $env:JIZURA_DIR } else { Join-Path $Root 'vendor\JIZURA' }
+  if (Test-Path -LiteralPath (Join-Path $jz 'src')) {
+    Write-Ok "clone present: $jz"
+    if (-not $env:JIZURA_DIR -and $jzRef -match '^[0-9a-f]{40}$' -and (Get-Command git -ErrorAction SilentlyContinue)) {
+      $head = "$(& git -C $jz rev-parse HEAD 2>$null)".Trim()
+      if ($head -match '^[0-9a-f]{40}$' -and $head -ne $jzRef) {
+        Write-Note "vendor/JIZURA is at $($head.Substring(0, 7)), not $($jzRef.Substring(0, 7)): delete vendor\JIZURA and re-run setup to fetch it"
+      }
+    }
+  } else {
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) { throw 'git not found: install Git (https://git-scm.com) or clone JIZURA yourself and set $env:JIZURA_DIR' }
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $jz) | Out-Null
-    Invoke-Native 'git clone JIZURA' 'git' @('clone', '--depth', '1', 'https://github.com/852wa/JIZURA', $jz)
+    Write-Host "   fetching https://github.com/852wa/JIZURA @ $jzRef$(if ($jzRef -eq $JzPin) { ' (tested commit)' })"
+    # shallow fetch of exactly one commit (works for a branch, a tag or a full sha); re-runnable after a failure
+    Invoke-Native 'git init' 'git' @('init', '-q', $jz)
+    Invoke-Native 'git config' 'git' @('-C', $jz, 'config', 'remote.origin.url', 'https://github.com/852wa/JIZURA')
+    Invoke-Native 'git config' 'git' @('-C', $jz, 'config', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*')
+    try { Invoke-Native 'git fetch JIZURA' 'git' @('-C', $jz, 'fetch', '--depth', '1', 'origin', $jzRef) }
+    catch { throw "$($_.Exception.Message) -- JIZURA_REF must be a branch, a tag or a full 40-character commit sha" }
+    Invoke-Native 'git checkout JIZURA' 'git' @('-C', $jz, 'checkout', '-q', '--detach', 'FETCH_HEAD')
   }
   Invoke-Native 'build JIZURA bundle' 'node' @('tools/build_jizura_bundle.mjs', '--ref', $jz)
 
@@ -165,16 +184,27 @@ try {
 
   Write-Step 'Done'
   if ($script:Warnings.Count) { $script:Warnings | ForEach-Object { Write-Host "   note: $_" -ForegroundColor Yellow } }
-  Write-Host @'
+  # how to call this Python below ('python' may be the Microsoft Store stub when setup found py -3)
+  $onPath = Get-Command python -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+  $PyCmd = if ($PyExe -eq 'python' -or ($onPath -and $onPath.Source -eq $PyExe)) { 'python' } elseif ($PyPre.Count) { (@('py') + $PyPre) -join ' ' } else { "& '$PyExe'" }
+  if (Test-Path -LiteralPath 'audio\song.wav') {
+    Write-Host @"
+   Next (from the project root; audio/song.wav is already there):
+     $PyCmd tools/analyze_audio.py                 (beats, bars, sections -> analysis/audio.json + overview.png)
+   then README.md section 3 (section 2 if it is the demo song). The demo smoke test needs a project without a song.
+"@
+  } else {
+    Write-Host @"
    Next (from the project root):
-     python demo/make_demo_song.py                 (optional smoke test: synthesizes audio/song.wav)
+     $PyCmd demo/make_demo_song.py                 (optional smoke test: synthesizes audio/song.wav)
      copy demo\lyrics_demo.lrc analysis\lyrics_mv.lrc
      copy demo\sections_demo.json analysis\sections.json      (optional: curated demo sections)
-     python tools/analyze_audio.py
-     node tools/stills.mjs --times 1,4,8,14,17,23 --sheet smoke
-     node tools/render_final.mjs --name demo
-   See README.md (PROJECT_README.md in the template) for the full workflow.
-'@
+     $PyCmd tools/analyze_audio.py
+     node tools/stills.mjs --times 1,3.5,8.4,10,12.5,13.6,18.4,19.5,21.2,23.3 --sheet smoke
+     node tools/render_final.mjs --name demo        (add --codec x264 without an NVIDIA GPU)
+   See README.md (PROJECT_README.md in the template) for the full workflow; section 2 adds the 9:16 version + review sheets.
+"@
+  }
 } finally {
   Pop-Location
 }

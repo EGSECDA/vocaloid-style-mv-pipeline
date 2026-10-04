@@ -6,7 +6,7 @@ Contents: 1 Architecture · 2 Hard rules (determinism, performance) · 3 The tim
 
 ## 1. Architecture
 
-`engine/index.html` loads, in order: seeded `Math.random` shim → `../jizura/app/jizura_engine.js` + `jizura_adapter.js` → `core/util.js` → `core/assets.js` → `core/gl.js` → `core/draw.js` → `core/trans.js` → `scenes/scenes.js` → scene files (`intro typo glass dark night memory meta`) → the timeline (`timeline.js`, or `?tl=tests/<file>.js`) → `core/main.js`. `engine/vertical.html` is the same stack plus `Z.NO_LYRICS = Z.VERTICAL = true` and `vertical.js` (see 08).
+`engine/index.html` loads, in order: seeded `Math.random` shim → `../jizura/app/jizura_engine.js` + `jizura_adapter.js` → `core/util.js` → `core/assets.js` → `core/gl.js` → `core/draw.js` → `core/trans.js` → `scenes/scenes.js` → scene files (`intro typo glass dark night memory meta`) → the timeline (`timeline.js`, or `?tl=tests/<file>.js`) → `core/main.js`. `engine/vertical.html` is the same stack (`?tl=` included) plus `Z.NO_LYRICS = Z.VERTICAL = true` and `vertical.js` (see 08).
 
 Contract used by the renderer: `window.ready` (Promise → `{duration, fps, renderer, shots, assets}`), `window.renderFrame(t)` (async, draws song time `t` into `<canvas id="out">`), `window.__zankoMeta` (`{duration, fps}`; the timeline must set `duration`).
 
@@ -37,11 +37,13 @@ JIZURA plan (shot.lyric) ─► TEXT layer (transparent) ◄─ shot.text(ctx,S)
 
 ```js
 (() => { const Z = window.Z, D = Z.draw, E = Z.ease; const A = 'assets/char/', BG = 'assets/bg/';
-  Z.CREDIT = 'Music / Lyrics / Movie：<artist>';
+  Z.TITLE = '<title>'; Z.TITLE_SUB = '<romaji>'; Z.ARTIST = '<artist>';   // new_project.py --title / --title-sub / --artist
+  Z.CREDIT = 'Music / Lyrics / Movie：<artist>';                           // new_project.py --credit
   Z.setup = async (audio) => {
-    const B = n => (n >= audio.bars.length ? audio.music_cut : audio.bars[n].start);
-    const nb = t => audio.beats.reduce((b, x) => (Math.abs(x - t) < Math.abs(b - t) ? x : b));
-    Z.LOOK_DEFAULT = { boil: 1.1, bloom: 0.3, bloomThreshold: 0.72, grain: 0.06, vignette: 0.35, lutMix: 0 };
+    const lastBar = audio.bars.length ? audio.bars[audio.bars.length - 1].index : 0;
+    const B = n => { const b = audio.bars.find(x => x.index === n); return b ? b.start : n > lastBar ? audio.music_cut : 0; };   // by bars[].index, never array position
+    const nb = t => audio.beats.reduce((b, x) => (Math.abs(x - t) < Math.abs(b - t) ? x : b), audio.beats[0] ?? t);
+    Z.LOOK_DEFAULT = { boil: 1.1, bloom: 0.3, bloomThreshold: 0.72, grain: 0.06, vignette: 0.35, lutMix: 0 };   // night / dusk; daylight values: §7
     // JIZURA: JZ.setAudio(...); await JZ.addPlan('main', {...}); ...           (06-jizura.md)
     const S = []; const shot = (id, t0, t1, scene, args, extra = {}) => S.push(Object.assign({ id, t0, t1, scene, args }, extra));
     shot('s04', B(10), nb(20.76), 'illust', { bg: BG + 'bg_sky.png', bgFrom: { zoom: 1.28, y: -0.7 }, bgTo: { zoom: 1.12, y: 0.55 },
@@ -58,7 +60,7 @@ JIZURA plan (shot.lyric) ─► TEXT layer (transparent) ◄─ shot.text(ctx,S)
 - `trans`: `{type, dur, …params, post?: (k, P) => {}}` — transition *into* this shot, occupying `[t0, t0+dur]`.
 - `text: (ctx, S) => {}` custom typography on the text layer (after JIZURA). `hud: false` hides `Z.hud` for this shot.
 
-**Globals the timeline may define**: `Z.LOOK_DEFAULT`, `Z.LOOKS` + `Z.sectionAt(t)` (section-based looks; also feeds `S.section`), `Z.globalFX(P, t)` (mutate post params every frame — 残光 used it for six big-downbeat flashes and a kick-driven shake `5·env.low(t)^3` during choruses only), `Z.hud(ctx, S)` (small corner typography on the text layer; skipped when `Z.VERTICAL`), `Z.CREDIT` (used by the title lockup and the vertical footer). `Z.NO_LYRICS` disables the lyric layer (vertical build).
+**Globals the timeline may define**: `Z.LOOK_DEFAULT`, `Z.LOOKS` + `Z.sectionAt(t)` (section-based looks; also feeds `S.section`), `Z.globalFX(P, t)` (mutate post params every frame — 残光 used it for six big-downbeat flashes and a kick-driven shake `5·env.low(t)^3` during choruses only), `Z.hud(ctx, S)` (small corner typography on the text layer; skipped when `Z.VERTICAL`), `Z.CREDIT` (used by the title lockup and the vertical footer), `Z.VERTICAL_CFG` (the 9:16 build: §10, 08 §5). The template timeline also keeps the film's identity in `Z.TITLE`, `Z.TITLE_SUB` (HUD, end card, vertical header) and `Z.ARTIST` (artist name in the 9:16 header); `new_project.py --title --title-sub --artist --credit` writes them. `Z.NO_LYRICS` disables the lyric layer (vertical build).
 
 Edit conventions that worked: shot ids `s01…` in film order (insert `s52b` rather than renumbering); cuts on `nb(lyric onset)` inside sections and `B(n)` at section changes; 60–80 shots for 3–4 min; chorus shots 0.9–2 s, verse shots 2.5–5 s, a few long holds.
 
@@ -118,15 +120,21 @@ New: `Z.transition('name', (ctx, A, B, k, o) => {})` — draw the blend of canva
 | `textCa` 0 | horizontal RGB split on the text layer |
 | `glitch` 0..1, `glitchSeed` | horizontal slice displacement (seed auto 24/s) |
 | `zoomBlur` 0, `zoomCenter [.5,.5]` | radial zoom blur (14 taps) |
-| `bloom` 0.35, `bloomThreshold` 0.72, `beatBloom` | bright pass + 3-level blur, added back |
+| `bloom` 0.35, `bloomThreshold` 0.72, `beatBloom` | bright pass + 3-level blur, added back — the bright pass keys on max(R,G,B), so at 0.72 every pixel of a blue sky or white cloud blooms and a daylight frame turns milky: on daylight plates use `bloom` 0.1–0.2, `bloomThreshold` 0.9–0.95, `beatBloom` ≤ 0.1, `vignette` ≤ 0.15 and no `exposure` pushes in `Z.globalFX` (e.g. `Z.LOOK_DEFAULT = { boil: 1.0, bloom: 0.15, bloomThreshold: 0.93, grain: 0.04, vignette: 0.1, lutMix: 0 }`) |
 | `flash` 0, `flashColor [1,1,1]` | mix to colour (keep ≤ 3 full-frame flashes/s) |
 | `invert` 0, `vignette` 0.35, `grain` 0.06 (re-seeded 24/s), `fade` 0 (to black), `letterbox` 0..1 (2.39:1 bars), `shake [x,y]` px, `textOpacity` 1 | finish |
 
-LUT names: every palette in `assets/style/palettes.json` gets two rows — `P1`, `P1_duo` (also the full id `P1_oumagatoki`) … `P5` — plus hand-built ramps `night`, `ember`, `dawn`, `mono`. The atlas is **256×16 rows** (`LUT_ROWS = 16`): 5 palettes × 2 + 4 ramps = 14; with more than 6 palettes raise `LUT_ROWS` and the atlas height together. Palette ids must look like `P<n>_<name>` (the short name is the part before `_`). New palettes: edit `PALETTES` in `tools/style_palette_sheet.py` and run it (writes `palettes.json`, OKLab-interpolated LUT PNGs and a contact sheet); add ramps in `buildLutAtlas()` in `main.js`.
+LUT names: every palette in `assets/style/palettes.json` gets two rows — `P1`, `P1_duo` (also the full id `P1_oumagatoki`) … `P5` — plus hand-built ramps `night`, `ember`, `dawn`, `mono`, `day` (high-key daylight: navy → sky blue → white). The atlas is **256×16 rows** (`LUT_ROWS = 16`): 5 palettes × 2 + 5 ramps = 15; with more than 5 palettes raise `LUT_ROWS` and the LUT texture height (`gl.js`) and the atlas canvas height (`main.js`) together. The shipped `P1`–`P5` are 残光's dusk/night ramps: a high-key frame lives in the top third of the ramp, so `P1` turns a blue sky (luma ≈ 0.76) orange — build your own palettes for a bright film. Palette ids must look like `P<n>_<name>` (the short name is the part before `_`). New palettes: edit `PALETTES` in `tools/style_palette_sheet.py` and run it (writes `palettes.json`, OKLab-interpolated LUT PNGs and a contact sheet on a built-in dusk scene; `--plate assets/bg/<plate>.png` previews them on one of your own backgrounds instead); add ramps in `buildLutAtlas()` in `main.js`.
 
 ## 8. Scene library catalogue (`engine/scenes/*.js`, 24 scenes)
 
-Shot ids refer to `examples/zanko/timeline.js`. Many special scenes default to 残光 assets and landmarks — pass args (and see §10) before reusing them.
+Shot ids refer to 残光's `examples/zanko/timeline.js`. The case study is in the kit repo only, not in the installed skill folder — online: https://github.com/EGSECDA/vocaloid-style-mv-pipeline/tree/main/examples/zanko (raw file: https://raw.githubusercontent.com/EGSECDA/vocaloid-style-mv-pipeline/main/examples/zanko/timeline.js). Reuse classes:
+- **generic (args only)**: `illust`, `solid`, `jz`, `panels` (`gutterColor`, `keyline`), `burst` (`grade` knows only `'night2dawn'`), `ref`, `seq`, `converge`, `afterimage` (pass `text`/`sub`/`credit`/`color`/`char`), `memories`;
+- **generic once the daylight args are set (bright films)**: `kanjiSlam` (`sky: 'day'` or a real `bg`; otherwise it paints a dusk or night sky), `typeCard` (`paper`, `quiet` mode);
+- **reusable once you pass your strings**: `titleRiff` (`glyphs`, `ruby`, `sub`, `hud` — otherwise it slams 残 / 光 and prints 残光's HUD; its sun disc and dusk palette stay);
+- **残光 set pieces** with hard-coded strings, glyphs or image landmarks (§10) — rewrite them for your film rather than re-skinning: `ember`, `tunnel`, `wetFloor`, `train`, `heart`, `skyShatter`, `thread`, `fall`, `flame`, `ink`, `road`.
+
+Scene defaults are 残光 dusk colours (ink `#140B1E`, amber rims and glows `#FFA552`): pass your palette's colours.
 
 **`scenes.js` — base**
 | scene | what | args (defaults) | 残光 |
@@ -142,15 +150,15 @@ fx specs (`fxBack`/`fx`, or `Z.fx`): `embers`, `fireflies`, `rain`, `dust`, `fea
 | scene | what | args | 残光 |
 |---|---|---|---|
 | `ember` | `breathe`: one ember breathing with the envelope, black micro-stops · `ignite`: ember → ring of fire on the low hit, beat rings, cracks · `collapse`: the dawn world implodes into one point | `mode`, `stops [[t0,t1]…]`, `flares`, `thumps`, `blackFrom`, `crackAt`, `ring 176`, `bg` (collapse), `keys`, `grain` | s01, s02, s65 |
-| `titleRiff` | title sequence on the riff: sun disc, monument glyphs slam on accents, HUD corners, silhouette in the sun, lockup; `outro` variant recaps 8–12 earlier frames per beat | `variant 'intro'\|'outro'`, `recap [{bg, char, view, h, cy}]`, `char`, `sky`, `cues {sun, hud, zan, ko, split, sil, lock, exit}` (beat indices), `exit`, `final` | s03, s64 |
+| `titleRiff` | title sequence on the riff: sun disc, monument glyphs slam on accents, HUD corners, silhouette in the sun, lockup; `outro` variant recaps 8–12 earlier frames per beat | `variant 'intro'\|'outro'`, `recap [{bg, char, view, h, cy}]`, `char`, `sky`, `cues {sun, hud, zan, ko, split, sil, lock, exit}` (beat indices), `exit`, `final`, `glyphs ['残','光']` (the two slammed glyphs), `ruby ['ざん','こう']` (reading per glyph in the lockup; `false` = none), `sub 'afterglow'` (lockup line), `hud {title, when, bpm, geo, place, len}` (the six HUD corner strings; defaults are 残光's) | s03, s64 |
 | `converge` | every motif spirals into one point → white-out | `seed`, `whiteAt` (default shot end) | s51 |
 | `afterimage` | the negative of the title lockup fading on the retina + credit | `text '残光'`, `sub`, `credit`, `color '#39C6E0'`, `char` | s66 (end card) |
 
 **`typo.js` — typographic set pieces** (`Z.typo.post.{kanjiSlam, typeCard, tunnel}`)
 | scene | what | args | 残光 |
 |---|---|---|---|
-| `kanjiSlam` | monument kanji slammed per beat behind a singer, damped-spring camera kicks, ink/light speed lines, rim-lit character, optional fire | `glyphs ['救','って',…]` (one per beat), `char`, `bg`, `variant 'default'\|'night'\|'hand'`, `fire`, any preset field (`charX/Y/H`, `face [fx,fy]`, `color`, `fam`, `weight`, `sky`, `rim`, `slots`, `frames`, `wind`, `lines`) | s16, s38, s52, s56 |
-| `typeCard` | `quiet`: one small mincho line typed in on black with a vermilion hairline · `flicker`: glitching word per beat building to white | `lines`, `mode`, `size 42`, `fam 'mincho'`, `weight 500`, `color`, `vertical`, `rule`, `sub`, `lead .1`, `stagger`, `fade .6`, `gap .36`, `x`, `y` | s29, s37 |
+| `kanjiSlam` | monument kanji slammed per beat behind a singer, damped-spring camera kicks, ink/light speed lines, rim-lit character, optional fire | `glyphs ['救','って',…]` (one per beat), `char`, `bg`, `variant 'default'\|'night'\|'hand'`, `fire`, `sky 'sunset'\|'night'\|'day'` (set by the variant: `'sunset'`, or `'night'` for the `night` variant; `'day'` keeps the plate as painted — no dusk multiply, no low sun — and `Z.typo.post.kanjiSlam` then adds no palette LUT and little bloom), `skyGrad [[k, c]…]` (the `'day'` sky when `bg` is null; default a blue daylight gradient), any preset field (`charX/Y/H`, `face [fx,fy]`, `color`, `fam`, `weight`, `rim`, `slots`, `frames`, `wind`, `lines`) | s16, s38, s52, s56 |
+| `typeCard` | `quiet`: one small mincho line typed in on black (or `paper`) with a vermilion hairline · `flicker`: glitching word per beat building to white | `lines`, `mode`, `size 42`, `fam 'mincho'`, `weight 500`, `color`, `paper` (background colour; default near-black; on a light paper the text defaults to ink and `Z.typo.post.typeCard` drops the bloom; `flicker` is additive light, keep its paper dark), `ruleColor` (hairline colour, default vermilion), `vertical`, `rule`, `sub`, `lead .1`, `stagger`, `fade .6`, `gap .36`, `x`, `y` | s29, s37 |
 | `tunnel` | one-take push through rings of lyric text (beats 1 & 3), dial and Latin rings, toward a light that blooms | `words [5]`, `plan [[t, word]…]`, `toward 'dawn'`, `f 820`, `v0 3.1`, `v1 9.5`, `fadeIn`, `reveal` | s61 |
 
 **`glass.js` — glass heart and shattering sky**
@@ -238,8 +246,9 @@ Use the real song times the scene is meant for (beats, stops and lyric onsets th
 The library was written for 残光; before reusing a scene with new assets, check:
 - `core/main.js`: default `__zankoMeta.duration` (224.32) — set it in your timeline.
 - **Image-pixel landmarks** tied to specific PNGs: `dark.js` `HR` (hand_reach pivot/ribbon tail), `FALL` (fall pivot/ribbon), `FLAME_AT` (flame core per image — or pass `flameAt`); `glass.js` kneeling-pose anchor points (chest shard, picking hand); `night.js` `WET` (horizon/vanishing point of bg_wetstreet), `FALL_HERO`, `LAMPS`/`ARM_LAMPS` (lamp lenses on bg_crossing_night); `meta.js` crossing-lamp positions; `memory.js` face position in turn_smile; `typo.js` `SLAM` presets (`face`, `charX/Y/H`). Measure the new image's pixels and override.
-- **Song times / strings in defaults**: `ember` `stops`, `flares`, `thumps`, `crackAt` (残光 intro micro-stops — pass from `audio.stops`); `train` `freeze [116.76,116.93]`, `exitAt 117.85`; HUD strings in `titleRiff` (title, BPM, coordinates, 踏切 No.7), `wetFloor count` (23:41, RAIN 7.5mm/h), `tunnel` `LATIN` lines and default words, `typeCard` default line, `afterimage` defaults, default asset paths (`assets/char/REF_master.png`, `bg_sky.png`, …) everywhere.
-- `vertical.js`: `FULL` shot-id set, header/footer text, credit times (17.6 s, 223.54 s), `PLAN_MAP` (08).
+- **Hard-coded 残光 literals (not args — edit the file or write your own scene)**: `ember`'s typed '残光 / ZANKŌ' (`intro.js`); `tunnel`'s `LATIN` rings and railway crossbucks (`typo.js`); `wetFloor count`'s 23:41 timecode and 'RAIN 7.5mm/h 水面観測' (`night.js`).
+- **残光 defaults you override with args**: `titleRiff` `glyphs` (残 / 光), `ruby` (ざん / こう), `sub` ('afterglow') and `hud` (title, DUSK / DAWN line, BPM 131, coordinates, 踏切 No.7, 03:44); `ember` `stops`, `flares`, `thumps`, `crackAt` (残光 intro micro-stops — pass from `audio.stops`); `train` `freeze [116.76,116.93]`, `exitAt 117.85`; `tunnel` words; `typeCard` default line and black paper; `kanjiSlam` dusk sky (`sky`); `afterimage` `text` / `sub` / `credit` / `color`; default asset paths (`assets/char/REF_master.png`, `bg_sky.png`, …) everywhere.
+- The timeline's `Z.VERTICAL_CFG` (08 §5): `full` shot ids, `planMap`, header `title` / `sub` / `artist` (the template passes `Z.TITLE`, `Z.TITLE_SUB`, `Z.ARTIST`), `credits: [t0, t1]` (when the header and the `Z.CREDIT` footer show), `schemes` (lyric schemes of the 9:16 plans, default `'dark'`) and `ambience` (`[r, g, b]` tint over the blurred 9:16 surround, default `[10, 6, 18]`). Fields you leave out fall back to the 残光 values in `vertical.js` (`full` s01–s03 s64–s66, credits 17.6 s → 223.54 s).
 - The timeline's `Z.hud` and `Z.globalFX` (flash list, chorus windows).
 
 ## 11. Pitfalls
@@ -252,7 +261,7 @@ The library was written for 残光; before reusing a scene with new assets, chec
 - Fonts not awaited in `init` → frame 0 or the first frame after a seek renders with a fallback font.
 - `Z.scratch` used across an `await` (e.g. inside an async `seq` draw) gets overwritten by another draw.
 - Boil on clean typography looks dirty: `post: { boil: 0 }` for type cards and end cards.
-- More than 6 palettes → LUT rows overflow the 16-row atlas silently (§7). A misspelt `lutA` name also fails silently (falls back to row 0 = the first palette).
+- More than 5 palettes → LUT rows overflow the 16-row atlas silently (§7: 2 rows per palette + 5 ramps). A misspelt `lutA` name also fails silently (falls back to row 0 = the first palette).
 
 ---
 Author: **NikusonP** · vocaloid-style-mv-pipeline (MIT)

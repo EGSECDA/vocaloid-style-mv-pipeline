@@ -157,6 +157,11 @@ def main():
     ap_.add_argument("--song-len", default=None, help="song length in seconds (default: from audio.json / song.wav)")
     ap_.add_argument("--whisper-pass", default=WHISPER_PASS,
                      help=f"Whisper pass in analysis/asr/ for fallback word timings (default {WHISPER_PASS})")
+    for _s in (sys.stdout, sys.stderr):  # help texts contain 残光 / ō / ：; never crash on a cp1252 / cp932 console
+        try:
+            _s.reconfigure(errors="replace")
+        except Exception:  # noqa: BLE001
+            pass
     args = ap_.parse_args()
     SONG_LEN = song_length(args.song_len)
     va = np.load(os.path.join(ASR, "vocal_activity.npz"))

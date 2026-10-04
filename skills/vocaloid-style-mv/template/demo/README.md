@@ -4,7 +4,7 @@ Everything needed to prove that a fresh install renders end to end, without a re
 
 | file | what |
 |---|---|
-| `make_demo_song.py` | synthesizes `audio/song.wav`: 24 s, 128 BPM, 48 kHz stereo (numpy + soundfile, deterministic) |
+| `make_demo_song.py` | synthesizes `audio/song.wav`: 24 s, 128 BPM, 48 kHz stereo (numpy + soundfile, deterministic); never replaces a different `audio/song.wav` (your song) unless `--force` |
 | `lyrics_demo.lrc` | eight original Japanese lines about light and night, timed to the song's lead phrases, with JIZURA markup |
 | `sections_demo.json` | curated section table (intro / verse / pre-chorus / chorus / post-chorus) → copy to `analysis/sections.json` |
 
@@ -22,10 +22,13 @@ python demo/make_demo_song.py
 cp demo/lyrics_demo.lrc analysis/lyrics_mv.lrc
 cp demo/sections_demo.json analysis/sections.json
 python tools/analyze_audio.py
+node tools/stills.mjs --times 1,3.5,8.4,10,12.5,13.6,18.4,19.5,21.2,23.3 --sheet smoke
 node tools/render_final.mjs --name demo
 ```
 
-When you start your own film, delete `analysis/sections.json` and `analysis/lyrics_mv.lrc` from the demo run (or
-scaffold a fresh project with `--song` / `--lyrics`) so the demo data does not leak into the new analysis.
+Run these steps in a throwaway project scaffolded **without** `--song` (`python <skill>/scripts/new_project.py
+_smoke --setup`), never in your film's project: they write `audio/song.wav`, `analysis/lyrics_mv.lrc` and
+`analysis/sections.json`. Scaffold the film separately with `--song` / `--lyrics`; it can reuse the smoke project's
+fonts (`--setup-args "-FontsFrom ../_smoke/engine/fonts"`, bash `"--fonts-from ../_smoke/engine/fonts"`).
 
 The demo song and lyrics are original work for this kit and free to use. Author: **NikusonP** (MIT).

@@ -12,7 +12,9 @@ Codex executable: env CODEX_BIN, else `codex` on PATH, else %LOCALAPPDATA%\\Open
 
 Jobs file: JSON list or JSONL of
   {"id": "...", "prompt": "...", "out": "relative/or/abs.png",
-   "transparent": false,            # key the result to RGBA (prompt should ask for #00FF00 bg)
+   "transparent": false,            # key the result to RGBA (the prompt gets a flat chroma-key background)
+   "key": "#00FF00",                # chroma colour for transparent jobs: "#FF00FF" (magenta) when the design has
+                                    # teal / aqua / mint / green, "#0000FF" only if nothing is blue
    "images": ["ref1.png", ...],     # optional reference images attached with -i
    "trim": true}                    # trim transparent result to content bbox + margin
 
@@ -44,11 +46,25 @@ ROOT = kit_env.ROOT
 CODEX: str | None = None    # resolved in main() (kit_env.find_codex), so --help works without Codex installed
 GEN_DIR = Path(os.environ.get("CODEX_HOME") or Path.home() / ".codex").expanduser() / "generated_images"
 
-GREEN_SUFFIX = (
-    " Background: a perfectly flat, uniform pure chroma-key green (#00FF00) filling the whole "
-    "background, no gradient, no floor, no cast shadow, no green anywhere on the subject. "
-    "Leave generous margin around the subject; nothing touches the image edges."
-)
+KEY_NAMES = {"#00FF00": "green", "#FF00FF": "magenta", "#0000FF": "blue"}
+
+
+def job_key(job: dict) -> str:
+    """The job's chroma colour as '#RRGGBB' ("key": "#FF00FF" or "magenta"; default green)."""
+    key = str(job.get("key") or "#00FF00").strip()
+    key = {v: k for k, v in KEY_NAMES.items()}.get(key.lower(), key).upper()
+    if len(key) != 7 or key[0] != "#" or any(c not in "0123456789ABCDEF" for c in key[1:]):
+        raise ValueError(f"job {job.get('id')}: key {job.get('key')!r} is not #RRGGBB / green / magenta / blue")
+    return key
+
+
+def key_suffix(key: str) -> str:
+    # the matte (tools/alpha_matte.py) reads the key from the image border, so only the prompt depends on it
+    name = KEY_NAMES.get(key)
+    label, avoid = (f"{name} ({key})", name) if name else (key, f"{key}-like colour")
+    return (f" Background: a perfectly flat, uniform pure chroma-key {label} filling the whole background, "
+            f"no gradient, no floor, no cast shadow, no {avoid} anywhere on the subject. "
+            "Leave generous margin around the subject; nothing touches the image edges.")
 
 lock = threading.Lock()
 
@@ -67,8 +83,10 @@ def load_jobs(path: Path) -> list[dict]:
 
 def worker_prompt(job: dict) -> str:
     prompt = job["prompt"].strip()
-    if job.get("transparent") and "#00FF00" not in prompt:
-        prompt += GREEN_SUFFIX
+    if job.get("transparent"):
+        key = job_key(job)
+        if key not in prompt.upper():
+            prompt += key_suffix(key)
     ref = ""
     if job.get("images"):
         ref = (
@@ -205,6 +223,13 @@ def main() -> int:
     if args.only:
         keep = set(args.only.split(","))
         jobs = [j for j in jobs if j["id"] in keep]
+    try:
+        for j in jobs:
+            if j.get("transparent"):
+                job_key(j)
+    except ValueError as e:
+        log(f"error: {e}")
+        return 2
     out_dir = kit_env.resolve(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     logs_dir = out_dir / "_logs"

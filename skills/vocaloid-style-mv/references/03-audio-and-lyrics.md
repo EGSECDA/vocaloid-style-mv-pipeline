@@ -51,7 +51,7 @@ Method in one paragraph: onset envelope at 100 fps (log-mel flux at 24 kHz); tem
 | `downbeat_info.winning_phase` | 1 → downbeat = `beats[k]` with `k % 4 == 1` | the engine's bar numbering (`Z.makeClock(…, winning_phase)`) |
 | `downbeat_info` (rest) | `phase_scores`, `per_feature_phase_means`, `confidence 0.82`, `top_repeat_lags` | auditing the downbeat choice |
 | `downbeats` | 122 times | bar hits |
-| `bars[]` | `{index, start, end, bpm}`; `index 0` is a **pickup** bar (`pickup:true, beats:n`) when the song starts off the downbeat | `B(n) = bars[n].start` cut times; per-bar tempo |
+| `bars[]` | `{index, start, end, bpm}`; `index 0` is a **pickup** bar (`pickup:true, beats:n`) when the song starts off the downbeat | `B(n)` = `start` of the bar whose `index` is n (array position ≠ bar number when there is no pickup); per-bar tempo |
 | `sections[]` | `{index, name, start, end, label, group, bars:[first,last], bar_count, energy, vocal_fraction, boundary_novelty(_rank), nearest_auto_boundary_bars, repeat_similarity{section_k: sim}, vocal_entry, confidence, occurrence, character, notable, notes}` | palette/look per section, HUD, escalation plan |
 | `auto_boundary_candidates_bars` | bar numbers | where the automatic novelty says sections change (input for §6) |
 | `stops[]` | `{start, end, depth_db, kind: 'stop'\|'gap'}` — a dip ≥ 9 dB below the local 80th percentile; `stop` = ≥ 13 dB and ≥ 0.14 s, or ≥ 0.3 s; else `gap` | freeze frames, black frames, held breaths, hard cuts on silence |
@@ -95,8 +95,9 @@ S.env.rms(t) low(t) mid(t) high(t) onset(t) vocal(t); S.env.get('bar_phase', t)
 ```
 Timeline helpers (inside `Z.setup(audio)`):
 ```js
-const B  = n => (n >= audio.bars.length ? audio.music_cut : audio.bars[n].start);                 // bar start
-const nb = t => audio.beats.reduce((b, x) => (Math.abs(x - t) < Math.abs(b - t) ? x : b));        // nearest beat
+const lastBar = audio.bars.length ? audio.bars[audio.bars.length - 1].index : 0;
+const B  = n => { const b = audio.bars.find(x => x.index === n); return b ? b.start : n > lastBar ? audio.music_cut : 0; };   // bar start, by bars[].index
+const nb = t => audio.beats.reduce((b, x) => (Math.abs(x - t) < Math.abs(b - t) ? x : b), audio.beats[0] ?? t);              // nearest beat
 const stopsIn = (a, b) => audio.stops.filter(s => s.kind === 'stop' && s.end > a && s.start < b);  // e.g. freeze windows
 ```
 Patterns that worked: cut on `nb(lyricOnset)` inside a section and on `B(n)` at section changes; big hits (flash, slam, palette change) on chorus downbeats and `drop` impacts; freezes on `stops`; per-beat motion from `pulse`, per-bar loops from `barPhase`; a global camera shake driven by `env.low(t)^3` during choruses only (残光 `Z.globalFX`). Several library scenes read `Z.audio.stops` and `onsets_strong` directly (`fall`, `ember`, `road`).
@@ -147,15 +148,21 @@ Run in this order; each step is re-runnable and writes to `analysis/asr/` or `an
 | 2 | `transcribe_separate.py kim` (and `vocft`) | UVR MDX-Net ONNX on onnxruntime CPU (no torch): `Kim_Vocal_2.onnx` (HF `seanghay/uvr_models`), `UVR-MDX-NET-Voc_FT.onnx` (HF `AI4future/RVC`); n_fft 7680, dim_f 3072, dim_t 256, hop 1024, UVR ± "denoise" averaging → `analysis/stems/vocals_<m>.wav`, `instrumental_<m>.wav`, `analysis/asr/vocals16k*.wav` | ~130 s CPU per model; **the single biggest accuracy gain** |
 | 3 | `transcribe_vocal_activity.py` | vocal/instrumental dB, pyin voicing + f0, vocal onset strength at 10 ms → `asr/vocal_activity.npz` (line-end refinement) | < 1 min |
 | 4 | `transcribe_whisper.py --input vocals16k.wav --tag voc_novad_b8 --vad 0 --beam 8` | one faster-whisper **large-v3** pass (cuda float16; falls back to int8/CPU), word timestamps, `condition_on_previous_text=False`, temperature fallback 0–0.8, repetition_penalty 1.05, optional `--clip a,b`, `--lang ja`, `--prompt none\|<text>` → `asr/pass_<tag>.json` | load 4–7 s, pass 18–55 s |
-| 5 | `transcribe_score.py` | **forced-decoding scoring**: for each ambiguous spot, force-decode every candidate text on a tight clip and compare Σ log P (e.g. いらない −9.8 vs 言わない −11.5); edit its `TESTS` list | ~1 min |
+| 5 | `transcribe_score.py` | **forced-decoding scoring**: for each ambiguous spot, force-decode every candidate text on a tight clip and compare Σ log P (e.g. いらない −9.8 vs 言わない −11.5); edit `SCORE_TESTS` in `transcribe_lines.py` (or pass `--tests <file.json>`) | ~1 min |
 | 6 | `transcribe_lines.py` (data) | **the line table you edit**: `(text, reading_hiragana, section, approx_start, confidence, alternatives, note)` per line — put the *official* text and a hand-checked hiragana reading here | — |
-| 7 | `transcribe_align_mms.py` | mora-level **CTC forced alignment** with torchaudio `MMS_FA` (wav2vec2, 1.18 GB) on the vocal stem; readings romanised per mora (`transcribe_kana.py`, needs `pykakasi`); lines aligned in `GROUPS` split at instrumental gaps, `*` star tokens at group ends → `asr/align_mms.json` | ~54 s CPU |
+| 7 | `transcribe_align_mms.py` | mora-level **CTC forced alignment** with torchaudio `MMS_FA` (wav2vec2, 1.18 GB) on the vocal stem; readings romanised per mora (`transcribe_kana.py`, needs `pykakasi`); lines aligned in groups (consecutive lines of one section, ≤ 8 per group; `--groups a-b,b-c,…` to override), each window cut from the lines' approximate starts (`LINES[i][3]`), `*` star tokens at group ends → `asr/align_mms.json` | ~54 s CPU |
 | 8 | `transcribe_onset_probe.py` (optional) | independent check: cut the stem at t, ask Whisper whether it still prefers the full line over the line minus its first mora; the "flip" time brackets the onset | minutes |
 | 9 | `transcribe_reconcile.py` | final build: line start = MMS onset (manual `START_OVERRIDE` where MMS grabbed the previous phrase's tail), per-word and per-character times, line end from vocal-energy decay, repeats, nearest 16th-note (`start_16th`), gaps ≥ 2 s → `analysis/lyrics.json`, `lyrics.lrc`, `lyrics_jizura.txt` (gaps as `[間奏]`), `lyrics_sections.json`, `lyrics_translation.json` (from `transcribe_translation.py`) | seconds |
 
-Install notes: CUDA Whisper needs `pip install nvidia-cublas-cu12` (ctranslate2 ships cuDNN but not cuBLAS; the script adds the pip `nvidia/*/bin` folders to the DLL path on Windows). MMS needs CPU torch + torchaudio **2.8** — install them into an isolated folder (`pip install --target <dir> torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cpu`) and point the `sys.path.insert` at the top of `transcribe_align_mms.py` to it, so the global Python stays untouched. Separation needs `huggingface_hub`.
+Install notes: CUDA Whisper needs `pip install nvidia-cublas-cu12` (ctranslate2 ships cuDNN but not cuBLAS; the script adds the pip `nvidia/*/bin` folders to the DLL path on Windows). The Python packages of steps 2–9 (faster-whisper, onnxruntime, huggingface_hub, pykakasi) come with the setup's lyric set: scaffold with `--setup-args "-Lyrics"` (bash `--lyrics`) or re-run `setup.ps1 -Lyrics` / `./setup.sh --lyrics`. MMS needs CPU torch + torchaudio **2.8**, kept out of the global site-packages: `python -m pip install --target vendor/pydeps_torch torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cpu`. `transcribe_align_mms.py` finds `vendor/pydeps_torch` automatically (or set `TORCH_DEPS_DIR`).
 
-**For official lyrics** you only need steps 2, 3, 6, 7, 9 (≈ 10 min). Edit the song-specific data in: `transcribe_lines.py` (LINES), `transcribe_align_mms.py` (`GROUPS`), `transcribe_reconcile.py` (`SECTION_NAMES`, `START_OVERRIDE`, `MORA_OVERRIDE`, wordless regions, `SONG_LEN`), `transcribe_translation.py` (TRANS/ROMAJI, optional), `transcribe_whisper.py` (`PROMPTS`, song keywords).
+**For official lyrics without timings** (the usual case: plain text, `--lyrics` saved it as `analysis/lyrics_official.txt`) run steps 2, 3, 4 — one Whisper pass on the stem, used only for each line's approximate start (±1 s): `transcribe_align_mms.py` cuts its windows from `LINES[i][3]` — then 6, 7, 9 (≈ 15 min). Replace all song data first; the shipped values are 残光's:
+- `transcribe_lines.py`: `LINES` (official text, hand-checked hiragana reading, section, approximate start), `SONG` (title, language, wordless vocal regions, instrumental breaks), `START_OVERRIDE = {}`, `MORA_OVERRIDE = {}`, `SCORE_TESTS`;
+- `transcribe_reconcile.py`: `SECTION_NAMES` (display names for the section keys used in `LINES`; unknown keys pass through);
+- `transcribe_translation.py`: `TRANS = []`, `ROMAJI = {}` unless you write translations — entries are matched by line index, so leftovers attach 残光's translations to your lines;
+- `transcribe_whisper.py`: `PROMPTS` (song keywords).
+
+Alignment groups are automatic (by section; `--groups` to override); `SONG_LEN` comes from `audio.json` (or `--song-len`). Write the hiragana reading of every line by hand and check it with `python tools/transcribe_kana.py` (every line must print `OK`). **Japanese only**: Chinese or English lyrics need the mora/romaji step of `transcribe_align_mms.py` replaced (e.g. pypinyin syllables), or time the lines by ear.
 
 **For transcription from scratch** run step 4 several times on different inputs and settings, diff the passes, settle disagreements with step 5, then continue from step 6. What 残光 taught (11 passes):
 
@@ -176,7 +183,7 @@ Rules: **VAD off** (Silero misreads sung vowels), separated stem beats every DSP
 
 ## 10. Writing `analysis/lyrics_mv.lrc`
 
-This file is what the film shows: the **official text**, broken into **display lines**, timed at the **sung onset**, with JIZURA markup. The timeline loads it at boot (falls back to `analysis/lyrics_draft.lrc`), strips `[ti:]` and hands it to every JIZURA plan.
+This file is what the film shows: the **official text**, broken into **display lines**, timed at the **sung onset**, with JIZURA markup. The timeline loads it at boot (without it the film renders with no lyric layer), strips `[ti:]` and hands it to every JIZURA plan.
 
 Merging official text with aligned timings:
 1. Start from `analysis/lyrics.json` (aligned with the official text in `transcribe_lines.py`).

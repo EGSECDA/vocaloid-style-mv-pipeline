@@ -16,7 +16,8 @@ Japanese fonts are looked up by role (FONTS: 'mincho', 'gothic_black', ...) in e
 folders (Windows / macOS / Linux) and <ROOT>/engine/fonts (tools/fetch_fonts.py) - see font_path().
 Author: NikusonP -- vocaloid-style-mv-pipeline, MIT licence.
 
-Blender 5.1 API facts this module relies on (verified by probes, see examples/zanko/BLENDER_RECIPE.md in the kit):
+Blender 5.1 API facts this module relies on (verified by probes, see examples/zanko/BLENDER_RECIPE.md in the kit repo,
+https://github.com/EGSECDA/vocaloid-style-mv-pipeline/tree/main/examples/zanko):
   * render engine ids: 'BLENDER_EEVEE' (EEVEE-Next is simply called BLENDER_EEVEE again),
     'CYCLES', 'BLENDER_WORKBENCH'.  'BLENDER_EEVEE_NEXT' no longer exists.
   * view transforms: 'Standard','ACES 1.3','ACES 2.0','Khronos PBR Neutral','AgX','Filmic',
@@ -97,6 +98,11 @@ def parse_args(defaults, doc=None):
     Returns a plain dict.  Unknown keys are kept as strings.
     With `doc` (the calling script's __doc__), '-- --help' prints it plus the defaults and exits."""
     if doc is not None and wants_help():
+        for _s in (sys.stdout, sys.stderr):  # shot docstrings may hold 残光 / ：; never crash on a cp1252 / cp932 console
+            try:
+                _s.reconfigure(errors="replace")
+            except Exception:  # noqa: BLE001
+                pass
         print_help(doc, defaults)
         sys.exit(0)
     out = dict(defaults)

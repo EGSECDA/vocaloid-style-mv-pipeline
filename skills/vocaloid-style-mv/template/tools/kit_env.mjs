@@ -4,7 +4,8 @@
 // Nothing in tools/ hard-codes a machine path; everything is derived from here:
 //
 //   ROOT              project root = the parent of tools/ (from this file's location)
-//   JIZURA_DIR        env JIZURA_DIR (legacy: JIZURA_REF), default <ROOT>/vendor/JIZURA  (upstream clone, read-only)
+//   JIZURA_DIR        env JIZURA_DIR, default <ROOT>/vendor/JIZURA  (upstream clone, read-only; setup fetches the
+//                     tested commit there -- env JIZURA_REF picks another branch / tag / sha, it is not a folder)
 //   browserChannel()  env BROWSER_CHANNEL, default 'msedge' on Windows, else 'chrome';
 //                     'chromium' = Playwright's bundled build
 //   gpuArgs()         Chromium GPU flags; ANGLE backend from env BROWSER_ANGLE
@@ -25,7 +26,7 @@ import { fileURLToPath } from 'node:url';
 
 export const TOOLS_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT = path.resolve(TOOLS_DIR, '..');
-export const JIZURA_DIR = path.resolve(ROOT, process.env.JIZURA_DIR || process.env.JIZURA_REF || path.join('vendor', 'JIZURA'));
+export const JIZURA_DIR = path.resolve(ROOT, process.env.JIZURA_DIR || path.join('vendor', 'JIZURA'));
 export const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 export const FFPROBE = process.env.FFPROBE || 'ffprobe';
 export const IS_WIN = process.platform === 'win32';
@@ -102,7 +103,7 @@ Environment variables: JIZURA_DIR, BROWSER_CHANNEL, BROWSER_ANGLE, PYTHON, FFMPE
   let py; try { py = pythonCmd().join(' '); } catch (e) { py = 'NOT FOUND (' + e.message + ')'; }
   let pw; try { pw = fileURLToPath(import.meta.resolve('playwright')); } catch { pw = 'missing (run npm install in the project root)'; }
   const rows = {
-    ROOT, JIZURA_DIR: JIZURA_DIR + (fs.existsSync(JIZURA_DIR) ? '' : '   (missing: git clone https://github.com/852wa/JIZURA vendor/JIZURA)'),
+    ROOT, JIZURA_DIR: JIZURA_DIR + (fs.existsSync(JIZURA_DIR) ? '' : '   (missing: run setup, or npm run jizura:clone)'),
     BROWSER_CHANNEL: browserChannel(), GPU_ARGS: gpuArgs().join(' '), PYTHON: py, FFMPEG, FFPROBE, playwright: pw,
   };
   for (const [k, v] of Object.entries(rows)) console.log(`${k.padEnd(16)} ${v}`);

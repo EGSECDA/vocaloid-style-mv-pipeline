@@ -1,4 +1,4 @@
-/* zanko scenes: dark — the night-side set pieces.
+/* vocaloid-style-mv scenes: dark — the night-side set pieces.
  *
  *   thread {hand, light, stops, kickAt, arriveAt}                         shot 06   ribbon → one travelling thread toward a far point of light
  *   fall   {char, freeze:[[t0,t1]], pulse:[t], vp:[x,y], speed, h}        shot 12   falling toward a tiny square of dawn; time-freeze on the stop

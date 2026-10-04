@@ -16,7 +16,7 @@
     "pip": "python -m pip install -r requirements.txt",
     "fonts": "python tools/fetch_fonts.py",
     "browser:install": "playwright install chromium",
-    "jizura:clone": "git clone --depth 1 https://github.com/852wa/JIZURA vendor/JIZURA",
+    "jizura:clone": "node -e \"const g=a=>{const r=require('node:child_process').spawnSync('git',a,{stdio:'inherit'});if(r.status!==0)process.exit(r.status===null?1:r.status)};const d=process.env.JIZURA_DIR||'vendor/JIZURA',ref=process.env.JIZURA_REF||'fc16bfe43ea4a6c25a21f1caf04d17326de14f00';console.log('JIZURA @ '+ref+' -> '+d);g(['init','-q',d]);g(['-C',d,'config','remote.origin.url','https://github.com/852wa/JIZURA']);g(['-C',d,'fetch','--depth','1','origin',ref]);g(['-C',d,'checkout','-q','--detach','FETCH_HEAD'])\"",
     "jizura:build": "node tools/build_jizura_bundle.mjs",
     "demo:song": "python demo/make_demo_song.py",
     "analyze": "python tools/analyze_audio.py",

@@ -1,4 +1,4 @@
-/* zanko engine — drawing toolkit shared by all scenes (Canvas2D). Everything is a pure function of its args. */
+/* vocaloid-style-mv engine — drawing toolkit shared by all scenes (Canvas2D). Everything is a pure function of its args. */
 (() => {
   'use strict';
   const Z = window.Z;

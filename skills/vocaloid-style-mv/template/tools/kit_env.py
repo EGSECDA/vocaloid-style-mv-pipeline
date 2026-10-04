@@ -154,7 +154,7 @@ def find_blender(required: bool = True) -> str | None:
 
 # ------------------------------------------------------------------------------------------------ JIZURA
 def jizura_dir() -> Path:
-    env = os.environ.get("JIZURA_DIR") or os.environ.get("JIZURA_REF")
+    env = os.environ.get("JIZURA_DIR")   # (JIZURA_REF is the git ref setup fetches, not a folder)
     return (ROOT / env).resolve() if env else ROOT / "vendor" / "JIZURA"
 
 
@@ -257,7 +257,7 @@ def main() -> int:
         "ROOT": ROOT, "SONG": f"{SONG}{'' if SONG.exists() else '   (missing)'}", "PYTHON": PYTHON,
         "FFMPEG": shutil.which(FFMPEG) or f"{FFMPEG} (NOT FOUND)", "FFPROBE": shutil.which(FFPROBE) or f"{FFPROBE} (NOT FOUND)",
         "CODEX_BIN": safe(find_codex), "BLENDER": safe(find_blender),
-        "JIZURA_DIR": f"{jz}{'' if jz.is_dir() else '   (missing: git clone https://github.com/852wa/JIZURA vendor/JIZURA)'}",
+        "JIZURA_DIR": f"{jz}{'' if jz.is_dir() else '   (missing: run setup, or npm run jizura:clone)'}",
         "FONT_DIRS": os.pathsep.join(font_dirs()),
     }
     for k, v in rows.items():

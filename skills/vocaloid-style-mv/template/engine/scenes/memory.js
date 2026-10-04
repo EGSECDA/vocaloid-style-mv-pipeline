@@ -1,4 +1,4 @@
-/* zanko scenes: memory — 'memories' (shot 45) and 'road' (shots 48 / 49).
+/* vocaloid-style-mv scenes: memory — 'memories' (shot 45) and 'road' (shots 48 / 49).
  *
  *  memories { photos:[{ bg, caption, date?, view?:{x,y,zoom}, char? }], char, charIn, order, dropBeats, burnBeats,
  *             pushAt, endZoom, seed }

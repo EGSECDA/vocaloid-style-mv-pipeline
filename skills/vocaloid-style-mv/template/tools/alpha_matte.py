@@ -18,8 +18,11 @@ Keying method (flat-colour anime art on a solid key colour):
   3. an edge band (`band` px) around the background is solved per-pixel with the
      two-colour model  C = a*F + (1-a)*K  where F is the colour of the nearest solid
      foreground pixel (distance transform).  a = <C-K, F-K> / |F-K|^2.
-  4. colours in the band are un-mixed (F' = K + (C-K)/a), green spill is clamped
-     (G <= max(R,B)) for green keys, alpha is optionally contracted/feathered.
+  4. colours in the band are un-mixed (F' = K + (C-K)/a), key spill is clamped near the edge only
+     (G <= max(R,B) for green keys; magenta: R,B lowered by min(R,B) - G), so teal / mint
+     clothes and skin tones keep their colour inside the subject; alpha is optionally contracted/feathered.
+  Chroma key choice: green unless the design has teal / aqua / mint / green (G > max(R,B)) -- those
+  are partly keyed by a green screen: use magenta (#FF00FF; tools/imagegen.py job field "key").
   5. transparent pixels get the nearest foreground colour (colour bleed) so GPU/canvas
      bilinear filtering never pulls key colour or black into the edges.
 
@@ -302,7 +305,7 @@ def _key_chroma(rgb8, C, K, src_alpha, *, tol_bg, despill, contract, feather, mi
 
     keyness = (C[key] - max(C[others])) / (K[key] - max(K[others]))   -> 0 for neutral / non-key hues
     alpha   = 1 - smoothramp(keyness, k_lo, k_hi)
-    colour  = (C - (1-a) K) / a   (un-premultiply the screen out), then despill key channel.
+    colour  = (C - (1-a) K) / a   (un-premultiply the screen out), then despill the key channel(s) in the edge band.
     Handles green pockets between hair strands that are not connected to the border.
     """
     h, w = C.shape[:2]
@@ -340,9 +343,16 @@ def _key_chroma(rgb8, C, K, src_alpha, *, tol_bg, despill, contract, feather, mi
     F = np.where(a3 > 0.02, (C - (1.0 - a3) * K) / np.maximum(a3, 0.02), C)
     F = np.clip(F, 0, 255)
     if despill:
+        # clamp only where the screen can spill: the soft edge band plus a few pixels inside it.
+        # A global clamp turns teal / mint (green key) and every skin tone (magenta key: R clamped to G) grey.
         cap = F[..., oth].max(axis=2)
-        for ch in kcs:
-            F[..., ch] = np.minimum(F[..., ch], cap)
+        zone = ndi.binary_dilation(alpha < 0.98, iterations=4)
+        if len(kcs) == 2:   # magenta-like screen: spill = what the pair has in common above the third channel
+            spill = np.clip(F[..., kcs].min(axis=2) - cap, 0, None) * zone
+            for ch in kcs:
+                F[..., ch] = F[..., ch] - spill
+        else:
+            F[..., kcs[0]] = np.where(zone, np.minimum(F[..., kcs[0]], cap), F[..., kcs[0]])
     if contract > 0:
         alpha = ndi.grey_erosion(alpha, size=(2 * contract + 1, 2 * contract + 1))
     if feather > 0:

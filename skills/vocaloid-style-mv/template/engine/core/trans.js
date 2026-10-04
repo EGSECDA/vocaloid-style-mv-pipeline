@@ -1,4 +1,4 @@
-/* zanko engine — transitions. fn(ctx, A, B, k, o): draw the blend of outgoing canvas A and incoming canvas B at k∈[0,1].
+/* vocaloid-style-mv engine — transitions. fn(ctx, A, B, k, o): draw the blend of outgoing canvas A and incoming canvas B at k∈[0,1].
  * o carries the shot's trans spec (type, dur, and any extra params such as cx/cy/angle/color). */
 (() => {
   'use strict';

@@ -3,8 +3,8 @@
  *
  *   node tools/build_jizura_bundle.mjs [--ref DIR] [--out DIR]
  *
- * Reads the read-only upstream clone (--ref, else env JIZURA_DIR, default <ROOT>/vendor/JIZURA; never writes there):
- *   git clone https://github.com/852wa/JIZURA vendor/JIZURA
+ * Reads the read-only upstream clone (--ref, else env JIZURA_DIR, default <ROOT>/vendor/JIZURA; never writes there),
+ * which setup.ps1 / setup.sh (or `npm run jizura:clone`) fetch at the tested commit (env JIZURA_REF overrides),
  * and writes (--out, default <ROOT>/jizura/app):
  *   jizura_engine.js    = src/*.js concatenated in build.py order, WITHOUT 12_ui.js
  *   JIZURA_LICENSE.txt  = upstream MIT licence (must ship with the code)
@@ -14,7 +14,7 @@
  * The only substitution is @VERSION@ -> the VERSION file, exactly like build.py.
  * Our additions (deterministic renderer, JZ API) live in jizura_adapter.js, loaded AFTER this bundle — no upstream file is patched.
  *
- * Author: NikusonP -- vocaloid-style-mv-pipeline, MIT licence (JIZURA itself: MIT, (c) 852wa).
+ * Author: NikusonP -- vocaloid-style-mv-pipeline, MIT licence (JIZURA itself: MIT, (c) 2026 hakoniwa (github.com/852wa)).
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -33,7 +33,7 @@ function displayPath(p) {
 export function buildBundle({ ref = REF, outDir = OUT_DIR, quiet = false } = {}) {
   const srcDir = path.join(ref, 'src');
   if (!fs.existsSync(srcDir) || !fs.existsSync(path.join(ref, 'VERSION'))) {
-    throw new Error(`JIZURA clone not found at ${ref}\n  git clone https://github.com/852wa/JIZURA "${path.join(ROOT, 'vendor', 'JIZURA')}"\n  (or set JIZURA_DIR / pass --ref)`);
+    throw new Error(`JIZURA clone not found at ${ref}\n  run setup.ps1 / setup.sh or \`npm run jizura:clone\` (fetch the tested commit into vendor/JIZURA)\n  (or set JIZURA_DIR / pass --ref)`);
   }
   const version = fs.readFileSync(path.join(ref, 'VERSION'), 'utf8').trim();
   // build.py uses sorted(glob('src/*.js')) — plain code-point order of the file names
@@ -43,7 +43,7 @@ export function buildBundle({ ref = REF, outDir = OUT_DIR, quiet = false } = {})
   let js = parts.join('\n').split('@VERSION@').join(version);
   let gitHead = '';
   try { gitHead = fs.readFileSync(path.join(ref, '.git', 'HEAD'), 'utf8').trim(); if (gitHead.startsWith('ref:')) gitHead = fs.readFileSync(path.join(ref, '.git', gitHead.slice(5).trim()), 'utf8').trim(); } catch (e) {}
-  const header = `/*! JIZURA 字面 v${version} engine (MIT License, (c) 852wa — see JIZURA_LICENSE.txt)\n` +
+  const header = `/*! JIZURA 字面 v${version} engine (MIT License, (c) 2026 hakoniwa (github.com/852wa) — see JIZURA_LICENSE.txt)\n` +
     ` *  built by tools/build_jizura_bundle.mjs from ${displayPath(ref)}${gitHead ? ' @' + gitHead.slice(0, 12) : ''}\n` +
     ` *  files: ${engineFiles.join(' ')}\n */\n`;
   js = header + js;

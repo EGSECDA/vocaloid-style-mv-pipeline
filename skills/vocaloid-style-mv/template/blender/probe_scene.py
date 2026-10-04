@@ -26,6 +26,11 @@ import random
 import time
 
 _ARGS = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else sys.argv[1:]
+for _s in (sys.stdout, sys.stderr):  # help texts contain 残光 / ō / ：; never crash on a cp1252 / cp932 console
+    try:
+        _s.reconfigure(errors="replace")
+    except Exception:  # noqa: BLE001
+        pass
 if "-h" in _ARGS or "--help" in _ARGS:          # also works in plain python (before bpy is needed)
     print(__doc__)
     sys.exit(0)

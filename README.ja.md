@@ -27,7 +27,7 @@ AI エージェントに**曲と歌詞**を渡すと、ボカロ／V家手書き
 最後まで作れるようにするキットです。出力は 1920×1080 のマスター、縦画面向けにネイティブに組み直した 1080×1920 の縦型版、
 そして共有用エンコードです。
 
-**はい、これはフロントエンドアニメーションです。** すべてのフレームはヘッドレスブラウザの中で HTML **Canvas2D** が描き、
+**これはフロントエンドアニメーションです。** すべてのフレームはヘッドレスブラウザの中で HTML **Canvas2D** が描き、
 **WebGL2** が合成し、Playwright がキャプチャして ffmpeg がエンコードします。After Effects も編集ソフトも使いません。
 各フレームは曲の時刻 `t` の純関数なので、映像そのものがコードです。何度レンダリングしても結果は同じで、
 並列ワーカーはどのフレームからでも描画でき、エージェントは 4 分の MV のチェック・修正・再レンダリングを数分で回せます。
@@ -150,7 +150,7 @@ mkdir -p ~/.claude/skills && cp -r skills/vocaloid-style-mv ~/.claude/skills/
 ```powershell
 # Windows PowerShell
 New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude\skills" | Out-Null
-Copy-Item -Recurse skills\vocaloid-style-mv "$env:USERPROFILE\.claude\skills\"
+Copy-Item -Recurse -Force skills\vocaloid-style-mv "$env:USERPROFILE\.claude\skills\"
 ```
 
 あとは曲と歌詞を入れたフォルダで Claude Code を開き、こう頼むだけです：
@@ -163,13 +163,19 @@ Copy-Item -Recurse skills\vocaloid-style-mv "$env:USERPROFILE\.claude\skills\"
 **2b. テンプレートを直接使う。**
 
 ```bash
-python skills/vocaloid-style-mv/scripts/new_project.py my-mv --song song.wav --lyrics lyrics.lrc --setup
-cd my-mv
+python skills/vocaloid-style-mv/scripts/new_project.py ../my-mv --song path/to/song.wav --lyrics path/to/lyrics.lrc --setup
+cd ../my-mv
 ```
 
 `--setup` は Playwright と Python パッケージのインストール、フォントのダウンロード、JIZURA のクローンとビルドを行います。
-あとは `my-mv` でエージェントを開き、上と同じように頼んでください。スキルに対応していないエージェントには
+`--title`、`--title-sub`、`--artist`、`--credit` を付けると、`engine/timeline.js` のタイトル、欧文サブタイトル、アーティスト名、クレジット行を設定できます。
+あとは `../my-mv` でエージェントを開き、上と同じように頼んでください。スキルに対応していないエージェントには
 `skills/vocaloid-style-mv/SKILL.md` を読ませれば大丈夫です。
+
+まだ曲がない場合は、`--song` と `--lyrics` を省き、使い捨てのフォルダを指定してください（デモは自前の曲と歌詞をプロジェクトに書き込みます）。
+新しいプロジェクトが、プロシージャルなデモ映像『蛍火』（24 秒、RTX 3080 でのレンダリングは約 30 秒）のコマンドを表示します。
+マシンで最後までレンダリングできるかを確かめるスモークテストです。完成見本：
+[16:9 動画](docs/images/demo_16x9.mp4) · [コンタクトシート](docs/images/demo_sheet.jpg) · [9:16 シート](docs/images/demo_vertical_sheet.jpg)。
 
 <details>
 <summary>エージェントが実行する主なコマンド（すべてプロジェクトのルートで実行）</summary>
@@ -184,6 +190,7 @@ python tools/review_sheets.py render/mv.mp4 --step 1.8 --out render/review1
 
 全手順、受け入れ基準、時間の目安はスキルの [`references/01-workflow.md`](skills/vocaloid-style-mv/references/01-workflow.md) にあります。
 `template/demo/` のプロシージャルなデモ曲は、新しいマシンでパイプラインが最後まで通るかを確かめるスモークテストに使えます。
+デモ映像『蛍火』：[16:9 動画](docs/images/demo_16x9.mp4) · [コンタクトシート](docs/images/demo_sheet.jpg) · [9:16 シート](docs/images/demo_vertical_sheet.jpg)。
 
 </details>
 
@@ -192,7 +199,7 @@ python tools/review_sheets.py render/mv.mp4 --step 1.8 --out render/review1
 | | 内容 | 備考 |
 |---|---|---|
 | **必須** | Node.js 20+ | Playwright、レンダリング・静止画スクリプト |
-| **必須** | Python 3.10+ | `librosa`、`numpy`、`scipy`、`soundfile`、`pillow`（setup がインストール） |
+| **必須** | Python 3.10+ | `librosa`、`numpy`、`scipy`、`soundfile`、`pillow`、`matplotlib`（setup がインストール） |
 | **必須** | ffmpeg + ffprobe（`PATH` 上） | エンコード、音声 mux、フレーム抽出 |
 | **必須** | Microsoft Edge または Google Chrome | Playwright 経由のヘッドレス WebGL2（`msedge` / `chrome` チャンネル） |
 | **必須** | git | setup で JIZURA をクローンするため |
@@ -204,6 +211,10 @@ python tools/review_sheets.py render/mv.mp4 --step 1.8 --out render/review1
 動作確認済みのプラットフォームは Windows 11（PowerShell 5.1 または Git Bash）です。macOS と Linux はクロスプラットフォームのスクリプトで
 対応していますが、検証はまだ少なめです。『残光』を RTX 3080 で作ったときの目安：音声解析 1 分弱、画像 1 枚 30〜110 秒（8〜10 枚並列）、
 Blender 1 フレーム約 0.7 秒、1080p フルレンダー約 4 分。
+
+setup は JIZURA を検証済みのコミット `fc16bfe` でクローンします。テンプレートの除外リストとスキーム番号は、このコミットで確認したものです。
+別のバージョンを使うときは、setup 用に環境変数 `JIZURA_REF` でブランチ・タグ・コミット（40 桁の完全な SHA）を指定してください（上流に追従するなら `main`）。
+`JIZURA_DIR` を設定すると setup は手元の既存クローンを使い、こちらが優先されます。
 
 ## リポジトリ構成
 
@@ -245,6 +256,8 @@ vocaloid-style-mv-pipeline/
   盛り上がっていくかを学んでください。ひび割れた空、ガラスの心臓、リボン、パレットといったモチーフは、歌詞に出てこない曲には使わないでください。
   スキルのクリエイティブディレクション文書には*バリエーション表*（世界、時間の弧、パレット、図形、素材、線のスタイル、キャラクター、
   タイポの声、3D の役割、トランジション、エンディング）があります。新しいプランが 3 項目より多く『残光』と重なったら、エージェントはさらに遠ざけます。
+- **夜も昼も。** テンプレートの初期値は『残光』の夕暮れと夜に合わせてあります。
+  明るい昼の映像では、エージェントが最初の静止画の前に歌詞の配色、ポスト処理、パレットを調整し直します。
 - **キャラクターはオリジナル。** 全ポーズを 1 枚の原案参照画像から生成します。既存キャラクターには絶対に似せません。
 - **すべての結果を自分の目で見る。** 静止画とコンタクトシートをアートディレクターのつもりで見て、直して、再レンダリングします。
   品質の大部分はこのチェックのループから生まれます。
@@ -252,7 +265,7 @@ vocaloid-style-mv-pipeline/
 ## クレジット
 
 - **キット、『残光』の楽曲・歌詞・映像：** NikusonP。*Music / Lyrics / Movie：NikusonP*
-- **[JIZURA 字面](https://github.com/852wa/JIZURA)**（852wa）：リリックモーションエンジン、MIT（setup 時に取得、リポジトリには同梱しません）
+- **[JIZURA 字面](https://github.com/852wa/JIZURA)**（852wa）：リリックモーションエンジン、MIT、© 2026 hakoniwa（setup 時に取得、リポジトリには同梱しません）
 - **フォント：** Google Fonts のファミリー（Noto Sans/Serif JP & SC、Zen Old Mincho、Zen Kaku Gothic New、Shippori Mincho B1、
   Kaisei Tokumin、Klee One、Yuji Syuku、DotGothic16、Dela Gothic One、Rampart One、Reggae One、M PLUS Rounded 1c）、SIL OFL 1.1
 - **[Playwright](https://playwright.dev/)**（Apache-2.0）· **[librosa](https://librosa.org/)**（ISC）·

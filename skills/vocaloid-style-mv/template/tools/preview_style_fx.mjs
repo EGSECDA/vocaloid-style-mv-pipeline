@@ -3,7 +3,9 @@
 // the procedural dusk scene (assets/style/dusk_scene_gray.png, from tools/style_palette_sheet.py) -> docs/style_fx_preview.png
 // (4x4 grid, 1920x1080). Software WebGL (SwiftShader) on purpose: the result does not depend on the GPU.
 //   node tools/preview_style_fx.mjs [--md docs/STYLE_RESEARCH.md] [--out docs/style_fx_preview.png]
-// The cookbook ships with the kit as examples/zanko/STYLE_RESEARCH.md; copy it to docs/ or point --md at it.
+// The cookbook is examples/zanko/STYLE_RESEARCH.md in the kit repo (not in the installed skill folder; online:
+// https://raw.githubusercontent.com/EGSECDA/vocaloid-style-mv-pipeline/main/examples/zanko/STYLE_RESEARCH.md);
+// copy it to docs/ or point --md at it.
 // Author: NikusonP -- vocaloid-style-mv-pipeline, MIT licence.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -19,7 +21,7 @@ Needs assets/style/dusk_scene_gray.png and assets/style/luts/P1..P5 (python tool
 const mdPath = path.resolve(ROOT, cliArg('md', 'docs/STYLE_RESEARCH.md'));
 const outPath = path.resolve(ROOT, cliArg('out', 'docs/style_fx_preview.png'));
 if (!fs.existsSync(mdPath)) {
-  console.error(`style cookbook not found: ${mdPath}\n  copy <kit>/examples/zanko/STYLE_RESEARCH.md to docs/ or pass --md <path>`);
+  console.error(`style cookbook not found: ${mdPath}\n  copy <kit repo>/examples/zanko/STYLE_RESEARCH.md to docs/ or pass --md <path>\n  (online: https://raw.githubusercontent.com/EGSECDA/vocaloid-style-mv-pipeline/main/examples/zanko/STYLE_RESEARCH.md)`);
   process.exit(1);
 }
 const lines = fs.readFileSync(mdPath, 'utf8').split(/\r?\n/);

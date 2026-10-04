@@ -26,7 +26,7 @@
 把**一首歌和它的歌词**交给 AI 智能体，借助这套工具，它就能做出一支达到作品集水准的完整歌词 MV，风格属于
 ボカロ / V 家手书 / 文字 PV 一脉。产出包括 1920×1080 母版、按竖屏原生重新排版的 1080×1920 竖版，以及用于分享的压制版本。
 
-**是的，这就是前端动画。** 每一帧都在无头浏览器里由 HTML **Canvas2D** 绘制、再由 **WebGL2** 合成，
+**这是前端动画。** 每一帧都在无头浏览器里由 HTML **Canvas2D** 绘制、再由 **WebGL2** 合成，
 Playwright 逐帧截取，ffmpeg 编码。不用 After Effects，也不用剪辑软件。
 每一帧都是歌曲时间 `t` 的纯函数，所以整部片子就是代码：重新渲染的结果总是一样，多个并行进程可以渲染任意一帧，
 智能体也能在几分钟内完成一支 4 分钟 MV 的检查、修改和重渲染。
@@ -145,7 +145,7 @@ mkdir -p ~/.claude/skills && cp -r skills/vocaloid-style-mv ~/.claude/skills/
 ```powershell
 # Windows PowerShell
 New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude\skills" | Out-Null
-Copy-Item -Recurse skills\vocaloid-style-mv "$env:USERPROFILE\.claude\skills\"
+Copy-Item -Recurse -Force skills\vocaloid-style-mv "$env:USERPROFILE\.claude\skills\"
 ```
 
 然后把歌曲和歌词放进一个文件夹，在那里打开 Claude Code，对它说：
@@ -158,12 +158,18 @@ Copy-Item -Recurse skills\vocaloid-style-mv "$env:USERPROFILE\.claude\skills\"
 **2b. 或者直接使用模板。**
 
 ```bash
-python skills/vocaloid-style-mv/scripts/new_project.py my-mv --song song.wav --lyrics lyrics.lrc --setup
-cd my-mv
+python skills/vocaloid-style-mv/scripts/new_project.py ../my-mv --song path/to/song.wav --lyrics path/to/lyrics.lrc --setup
+cd ../my-mv
 ```
 
-`--setup` 会安装 Playwright 和 Python 依赖、下载字体、克隆并构建 JIZURA。之后在 `my-mv` 里打开智能体，按上面的方式提出需求即可。
+`--setup` 会安装 Playwright 和 Python 依赖、下载字体、克隆并构建 JIZURA。
+`--title`、`--title-sub`、`--artist`、`--credit` 用来在 `engine/timeline.js` 里设定片名、拉丁字母副标题、艺术家名和署名行。
+之后在 `../my-mv` 里打开智能体，按上面的方式提出需求即可。
 不支持技能的智能体，可以直接让它去读 `skills/vocaloid-style-mv/SKILL.md`。
+
+还没有歌？去掉 `--song` / `--lyrics`，并换一个用完即弃的文件夹（演示会把自己的歌曲和歌词写进项目）。
+新项目会打印出程序生成的演示短片《蛍火》的运行命令（24 秒；在 RTX 3080 上渲染约 30 秒），用来冒烟测试，确认这台机器能把整条流程跑通。预期结果：
+[16:9 视频](docs/images/demo_16x9.mp4) · [联系表](docs/images/demo_sheet.jpg) · [9:16 联系表](docs/images/demo_vertical_sheet.jpg)。
 
 <details>
 <summary>智能体运行的主要命令（都在项目根目录执行）</summary>
@@ -178,6 +184,7 @@ python tools/review_sheets.py render/mv.mp4 --step 1.8 --out render/review1
 
 完整步骤、验收标准和时间预算见技能里的 [`references/01-workflow.md`](skills/vocaloid-style-mv/references/01-workflow.md)。
 `template/demo/` 里有一首程序生成的演示歌曲，可以作为冒烟测试，确认新机器能把整条流程跑通。
+演示短片《蛍火》：[16:9 视频](docs/images/demo_16x9.mp4) · [联系表](docs/images/demo_sheet.jpg) · [9:16 联系表](docs/images/demo_vertical_sheet.jpg)。
 
 </details>
 
@@ -186,7 +193,7 @@ python tools/review_sheets.py render/mv.mp4 --step 1.8 --out render/review1
 | | 内容 | 说明 |
 |---|---|---|
 | **必需** | Node.js 20+ | Playwright、渲染和静帧脚本 |
-| **必需** | Python 3.10+ | `librosa`、`numpy`、`scipy`、`soundfile`、`pillow`（setup 会自动安装） |
+| **必需** | Python 3.10+ | `librosa`、`numpy`、`scipy`、`soundfile`、`pillow`、`matplotlib`（setup 会自动安装） |
 | **必需** | ffmpeg + ffprobe（在 `PATH` 中） | 编码、混入音频、抽帧 |
 | **必需** | Microsoft Edge 或 Google Chrome | 通过 Playwright 无头运行 WebGL2（`msedge` / `chrome` 通道） |
 | **必需** | git | setup 需要克隆 JIZURA |
@@ -198,6 +205,10 @@ python tools/review_sheets.py render/mv.mp4 --step 1.8 --out render/review1
 经过测试的平台是 Windows 11（PowerShell 5.1 或 Git Bash）。macOS 和 Linux 靠跨平台脚本支持，但测试较少。
 《残光》在 RTX 3080 上的参考耗时：音频分析不到 1 分钟；生成一张图 30–110 秒（可 8–10 张并行）；
 Blender 约 0.7 秒一帧；1080p 全片渲染约 4 分钟。
+
+setup 会把 JIZURA 克隆到经过测试的提交 `fc16bfe`，模板里的黑名单和配色方案编号都是按这个版本核对的。
+如果要用其他版本，请为 setup 设置环境变量 `JIZURA_REF`，值为分支、标签或完整的 40 位提交 SHA（例如 `main`，跟随上游）。
+`JIZURA_DIR` 让 setup 直接使用本地已有的克隆，并且优先于 `JIZURA_REF`。
 
 ## 仓库结构
 
@@ -237,13 +248,15 @@ vocaloid-style-mv-pipeline/
   如果你的歌词里根本没有裂开的天空、玻璃心、丝带，就不要拿这些母题和它的调色板来用。技能的创意方向文档里有一张
   *变化矩阵*（世界观、时间弧线、调色板、形状、材质、线条风格、角色、字体气质、3D 的角色、转场语法、结尾）。
   新方案如果在三个以上维度和《残光》重合，智能体会继续推远。
+- **夜景或白昼。** 模板的默认值是按《残光》的黄昏和夜景调的；
+  做明亮的白天题材时，智能体会在出第一张静帧之前，先重新调整歌词配色、后期效果和调色板。
 - **角色是原创的。** 所有姿势都以同一张定稿参考图生成。绝不模仿已有角色。
 - **每个结果都要亲眼看。** 静帧和联系表要像美术指导那样逐张审看、修改、重渲染。质量大多来自这个检查循环。
 
 ## 致谢
 
 - **工具包，以及《残光》的歌曲、歌词与影像：** NikusonP。*Music / Lyrics / Movie：NikusonP*
-- **[JIZURA 字面](https://github.com/852wa/JIZURA)**（852wa）：歌词动效引擎，MIT（setup 时获取，不随仓库分发）
+- **[JIZURA 字面](https://github.com/852wa/JIZURA)**（852wa）：歌词动效引擎，MIT，© 2026 hakoniwa（setup 时获取，不随仓库分发）
 - **字体：** Google Fonts 字族（Noto Sans/Serif JP & SC、Zen Old Mincho、Zen Kaku Gothic New、Shippori Mincho B1、
   Kaisei Tokumin、Klee One、Yuji Syuku、DotGothic16、Dela Gothic One、Rampart One、Reggae One、M PLUS Rounded 1c），SIL OFL 1.1
 - **[Playwright](https://playwright.dev/)**（Apache-2.0）· **[librosa](https://librosa.org/)**（ISC）·

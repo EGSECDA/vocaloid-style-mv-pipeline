@@ -49,7 +49,7 @@ _probe/
 # tools/imagegen.py keeps the un-keyed green-screen original next to each RGBA asset
 **/assets/**/*.raw.png
 
-# videos (the demo clip used by the README is the only exception)
+# videos (the demo clip linked from the READMEs is the only exception)
 *.mp4
 *.mov
 *.mkv

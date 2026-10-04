@@ -11,9 +11,10 @@ font files inside it), include the licence files noted below.
 
 ### JIZURA 字面: lyric-motion engine
 
-- Source: <https://github.com/852wa/JIZURA> by 852wa
+- Source: <https://github.com/852wa/JIZURA> (GitHub account 852wa)
 - Licence: **MIT**, Copyright (c) 2026 hakoniwa
-- How it is used: setup `git clone`s the repository into `vendor/JIZURA/`, and `tools/build_jizura_bundle.mjs`
+- How it is used: setup `git clone`s the repository into `vendor/JIZURA/` at the tested commit `fc16bfe` (the
+  environment variable `JIZURA_REF` selects another branch, tag or commit), and `tools/build_jizura_bundle.mjs`
   concatenates its engine sources (no UI, no patches) into `jizura/app/jizura_engine.js`. The kit's own
   `jizura/app/jizura_adapter.js` drives that bundle as a deterministic lyric layer. `vendor/` and the built bundle
   are git-ignored. If you redistribute the bundle, keep `JIZURA_LICENSE.txt` next to it.
@@ -68,7 +69,7 @@ the licence, but not to sell them on their own.
 | Dela Gothic One | Copyright 2020 The Dela Gothic Project Authors |
 | Rampart One | Copyright 2020 The Rampart Project Authors |
 | Reggae One | Copyright 2020 The Reggae Project Authors |
-| M PLUS Rounded 1c | Copyright 2016 The M+ Project Authors |
+| M PLUS Rounded 1c | Copyright 2016 The Rounded M+ Project Authors |
 
 ## Installed through package managers (not in this repository)
 
@@ -81,6 +82,7 @@ the licence, but not to sell them on their own.
 | [soundfile](https://github.com/bastibe/python-soundfile) (wraps libsndfile) | audio I/O | BSD-3-Clause (libsndfile: LGPL-2.1-or-later) |
 | [Pillow](https://python-pillow.org/) | contact sheets, alpha mattes, palette LUTs | MIT-CMU (HPND) |
 | [Matplotlib](https://matplotlib.org/) | analysis overview plots | Matplotlib licence (PSF-based) |
+| [OpenCV](https://github.com/opencv/opencv-python) (`opencv-python-headless`) | image utilities for asset work (installed by setup from `requirements.txt`; no kit tool requires it) | Apache-2.0. The wheel bundles third-party libraries such as FFmpeg (LGPL-2.1) |
 | [faster-whisper](https://github.com/SYSTRAN/faster-whisper) *(optional)* | lyric transcription / word timings | MIT |
 | [CTranslate2](https://github.com/OpenNMT/CTranslate2) *(optional)* | faster-whisper backend | MIT |
 | [ONNX Runtime](https://github.com/microsoft/onnxruntime) *(optional)* | vocal-stem separation | MIT |
