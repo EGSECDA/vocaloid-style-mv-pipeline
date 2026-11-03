@@ -113,7 +113,7 @@ def alpha_report(img: Image.Image) -> dict:
         h, w = a.shape
         sides = [n for n, hit in (("top", ys.min() == 0), ("left", xs.min() == 0), ("bottom", ys.max() == h - 1), ("right", xs.max() == w - 1)) if hit]
         info["touches_edge"] = bool(sides)
-        info["cut_sides"] = sides  # sides where visible pixels reach the canvas border = the subject was cropped there
+        info["cut_sides"] = sides  # visible pixels reach these borders; inspect for a possible crop
     # halo metrics: edge pixels (partial alpha, or opaque pixels touching transparent ones)
     edge = partial_mask | (ndi.binary_dilation(a == 0, iterations=1) & (a > 0))
     if edge.any():

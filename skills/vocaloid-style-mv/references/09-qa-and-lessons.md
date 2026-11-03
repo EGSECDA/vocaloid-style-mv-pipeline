@@ -47,7 +47,7 @@ A sampled black/odd frame in a sheet may be a *designed* beat (e.g. a 溜め bla
 | Over-busy pre-chorus | JIZURA noir + glitch + our CA | accept for tension, but keep the character readable |
 | Vertical: title glyphs cropped | 6:5 centre crop on graphic shots | list graphic shots in `Z.VERTICAL_CFG.full` (whole 16:9 composition in the band) |
 | Vertical: blurred ghost of title text in the ambience | ambience is a blurred copy of the frame | darken the ambience extra on FULL shots |
-| A sprite has a straight "frame" edge (flat top on the smoke, a cut-off arm) | the generator cropped the subject at the canvas border; the alpha check ran after `trim`, so it never saw it | read `cut_sides` in `assets/char/manifest.json`; regenerate with more margin or fade that side (04 §10); look at the sprite placed in a shot, not only on a grey preview |
+| A sprite has a straight "frame" edge (flat top on the smoke, a cut-off arm) | the generator cropped the subject at the canvas border; the alpha check ran after `trim`, so it never saw it | inspect `cut_sides` in `assets/char/manifest.json` (border contact is only a warning); regenerate with more margin or fade that side (04 §10); look at the sprite placed in a shot, not only on a grey preview |
 | 3D shot ends coloured instead of white on the cut | white-out exposure stopped around 1.6 | key exposure up to ~7.0 with bloom 2.0 and check the last frame is pure white (07 §6) |
 | Relative `--out` writes frames outside the project (`C:\blender\...`) | `os.makedirs` and Blender's `render.filepath` resolved the relative path against different bases | `bc.parse_args` now makes `out` / `*_dir` absolute against the project root; pass absolute paths on older copies |
 

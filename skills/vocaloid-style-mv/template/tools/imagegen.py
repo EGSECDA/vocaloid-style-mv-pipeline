@@ -194,7 +194,7 @@ def postprocess_alpha(raw: Path, out: Path, trim: bool) -> dict:
         method = "native-alpha"
     cut = am.alpha_report(img).get("cut_sides", [])  # measure BEFORE trim: trim adds a transparent margin, after which the border is never touched
     if cut:
-        print(f"[warn] {out.name}: subject is cut flat by the canvas on {', '.join(cut)} - regenerate with more margin, or fade the cut edge (smoke, hair, cloth)", file=sys.stderr, flush=True)
+        print(f"[warn] {out.name}: visible pixels touch the canvas on {', '.join(cut)}; inspect for cropping and regenerate with more margin if needed", file=sys.stderr, flush=True)
     if trim:
         img, _ = am.trim_to_content(img, margin=16)
     img.save(out)
