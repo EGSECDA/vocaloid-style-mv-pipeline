@@ -104,7 +104,7 @@ Ingredients that made it feel cut to the music: speed kicks *on* downbeats with 
 
 - **Alternating lamps**: `lamp_level(f, side)` returns the brightness from the current beat index (even beat → left lamp, odd → right), with a 1-frame ramp-up, a slight sag while on and a 2-frame tail when switching off (incandescent feel). It is keyed per frame into the lamp emission factor (`sh.key_socket`) and into red point lights' `energy` (190 W × level), then forced LINEAR (`sh.set_id_interp`).
 - **Barrier arms landing on downbeats**: per-frame rotation — held up, falling from 26 frames before the downbeat with a gravity ease-in, landing **exactly** on `F_DOWN[k]`, two damped bounces (`0.06·e^(−d/3.2)·|sin(0.95 d)|`).
-- **White-out exit**: compositor exposure keyed from 0 to 1.6 over the last 10 frames (+ bloom 2.0) so the 3D shot burns into the next 2D shot on a hard cut.
+- **White-out exit**: compositor exposure + bloom keyed over the last ~10 frames so the 3D shot burns into the next 2D shot on a hard cut. `shotB_crossing.py` ramps exposure 0 → 0.35 → 1.6 → 3.6 → **7.0** (bloom 0.75 → 2.0); stopping near 1.6 leaves a bright but still coloured frame (pink corridor walls, visible photos), which cuts badly. Check that the **last frame is pure white** (`f_<last>.jpg` is near #FFFFFF) before the full render; `sh.key_socket(comp["exposure"], [(frame, value), ...])` takes the keys.
 
 ## 7. Pattern: `toon_rgb_split` (three cel-shaded light layers, real shadows)
 

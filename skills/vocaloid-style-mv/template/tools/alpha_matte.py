@@ -111,7 +111,9 @@ def alpha_report(img: Image.Image) -> dict:
         ys, xs = np.nonzero(vis)
         info["bbox"] = [int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1]
         h, w = a.shape
-        info["touches_edge"] = bool(xs.min() == 0 or ys.min() == 0 or xs.max() == w - 1 or ys.max() == h - 1)
+        sides = [n for n, hit in (("top", ys.min() == 0), ("left", xs.min() == 0), ("bottom", ys.max() == h - 1), ("right", xs.max() == w - 1)) if hit]
+        info["touches_edge"] = bool(sides)
+        info["cut_sides"] = sides  # visible pixels reach these borders; inspect for a possible crop
     # halo metrics: edge pixels (partial alpha, or opaque pixels touching transparent ones)
     edge = partial_mask | (ndi.binary_dilation(a == 0, iterations=1) & (a > 0))
     if edge.any():

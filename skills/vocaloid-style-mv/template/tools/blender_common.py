@@ -131,6 +131,12 @@ def parse_args(defaults, doc=None):
             out[key] = float(val)
         else:
             out[key] = val
+    # Output locations are made absolute against the project root. A relative path would otherwise be resolved
+    # separately by os.makedirs (process cwd) and by Blender's render.filepath, and the frames can end up in a
+    # different folder (seen on Windows with a non-ASCII project path: C:\blender\renders\...).
+    for k, v in list(out.items()):
+        if (k == "out" or k.endswith("_dir")) and isinstance(v, str) and v and not os.path.isabs(v):
+            out[k] = os.path.normpath(os.path.join(ROOT, os.path.expanduser(v)))
     return out
 
 

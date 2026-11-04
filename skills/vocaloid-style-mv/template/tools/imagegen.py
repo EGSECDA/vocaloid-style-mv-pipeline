@@ -192,11 +192,14 @@ def postprocess_alpha(raw: Path, out: Path, trim: bool) -> dict:
     else:
         img, _ = am.normalize_alpha(src.convert("RGBA"))
         method = "native-alpha"
+    cut = am.alpha_report(img).get("cut_sides", [])  # measure BEFORE trim: trim adds a transparent margin, after which the border is never touched
+    if cut:
+        print(f"[warn] {out.name}: visible pixels touch the canvas on {', '.join(cut)}; inspect for cropping and regenerate with more margin if needed", file=sys.stderr, flush=True)
     if trim:
         img, _ = am.trim_to_content(img, margin=16)
     img.save(out)
     rep2 = am.alpha_report(img)
-    return {"alpha_method": method, "size": list(img.size),
+    return {"alpha_method": method, "size": list(img.size), "cut_sides": cut,
             "transparent_pct": rep2.get("transparent_pct"), "opaque_pct": rep2.get("opaque_pct")}
 
 
